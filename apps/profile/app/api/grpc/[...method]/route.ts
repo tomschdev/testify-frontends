@@ -53,10 +53,8 @@ export async function POST(
   }
 
   const idToken = await serviceIdToken(host);
-  if (!idToken) {
-    return grpcWebResponse(
-      statusOnlyBody(16, "service credentials not configured - set GCP_CREDENTIALS_JSON"),
-    );
+  if ("error" in idToken) {
+    return grpcWebResponse(statusOnlyBody(16, idToken.error));
   }
 
   const raw = Buffer.from(await req.arrayBuffer());
@@ -67,7 +65,7 @@ export async function POST(
 
   try {
     const result = await forwardUnary(host, `/${service}/${method}`, frames, {
-      authorization: `Bearer ${idToken}`,
+      authorization: `Bearer ${idToken.token}`,
       "x-alis-forwarded-authorization": token,
     });
     return grpcWebResponse(result.bodyBase64);

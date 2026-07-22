@@ -23,43 +23,79 @@ import { GoogleAuth } from "google-auth-library";
  * account (Workload Identity Federation) config; GoogleAuth accepts both, so
  * moving from a key to keyless federation is a config change, not a code one.
  */
-const CREDENTIALS_JSON = process.env.GCP_CREDENTIALS_JSON ?? "";
+
+/** Read lazily: a module-scope read is captured before the runtime env exists. */
+function credentialsJson(): string {
+  return process.env.GCP_CREDENTIALS_JSON ?? "";
+}
+
+export type IdTokenResult = { token: string } | { error: string };
 
 let cachedAuth: GoogleAuth | null = null;
 
-function googleAuth(): GoogleAuth | null {
-  if (!CREDENTIALS_JSON) return null;
-  if (!cachedAuth) {
-    const credentials: unknown = JSON.parse(CREDENTIALS_JSON);
-    cachedAuth = new GoogleAuth({
-      credentials: credentials as Record<string, unknown>,
-      scopes: ["https://www.googleapis.com/auth/cloud-platform"],
-    });
+/**
+ * Returns the auth client, or a description of why it can't be built. Every
+ * failure names the actual defect — absent, empty, unparseable, wrong identity
+ * — so a misconfigured deployment doesn't masquerade as an unset one.
+ */
+function googleAuth(): { auth: GoogleAuth } | { error: string } {
+  if (cachedAuth) return { auth: cachedAuth };
+
+  const raw = credentialsJson();
+  if (!raw) {
+    return { error: "GCP_CREDENTIALS_JSON is not set on this deployment" };
   }
-  return cachedAuth;
+
+  // A value pasted with the .env single quotes still attached is valid text but
+  // invalid JSON; strip them rather than failing on a cosmetic mistake.
+  const trimmed = raw.trim().replace(/^'(.*)'$/s, "$1");
+
+  let credentials: Record<string, unknown>;
+  try {
+    credentials = JSON.parse(trimmed) as Record<string, unknown>;
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    return {
+      error: `GCP_CREDENTIALS_JSON is set (${trimmed.length} chars) but is not valid JSON: ${detail}`,
+    };
+  }
+
+  if (typeof credentials.client_email !== "string") {
+    return { error: "GCP_CREDENTIALS_JSON parsed but has no client_email" };
+  }
+
+  // No `scopes` here: the token endpoint rejects a JWT carrying both a scope
+  // and a target_audience ("cannot specify both scope and target audience in
+  // jwt"). ID tokens are audience-scoped, so scopes are meaningless for them.
+  cachedAuth = new GoogleAuth({ credentials });
+  return { auth: cachedAuth };
 }
 
 /** Cached per audience — minting is a network round trip. */
 const tokenCache = new Map<string, { token: string; expiresAt: number }>();
 
 /**
- * ID token for `audience` (the target Cloud Run URL), or null when no
- * credentials are configured. Tokens live an hour; re-mint 5 minutes early.
+ * ID token for `audience` (the target Cloud Run URL). Tokens live an hour;
+ * re-mint 5 minutes early.
  */
-export async function serviceIdToken(audience: string): Promise<string | null> {
-  const auth = googleAuth();
-  if (!auth) return null;
-
+export async function serviceIdToken(audience: string): Promise<IdTokenResult> {
   const cached = tokenCache.get(audience);
-  if (cached && cached.expiresAt > Date.now()) return cached.token;
+  if (cached && cached.expiresAt > Date.now()) return { token: cached.token };
+
+  const result = googleAuth();
+  if ("error" in result) {
+    console.error(`[auth] ${result.error}`);
+    return result;
+  }
 
   try {
-    const client = await auth.getIdTokenClient(audience);
+    const client = await result.auth.getIdTokenClient(audience);
     const token = await client.idTokenProvider.fetchIdToken(audience);
     tokenCache.set(audience, { token, expiresAt: Date.now() + 55 * 60 * 1000 });
-    return token;
+    return { token };
   } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
     console.error(`[auth] minting service ID token for ${audience} failed:`, err);
-    return null;
+    return { error: `could not mint service ID token: ${detail}` };
   }
 }
