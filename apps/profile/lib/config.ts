@@ -17,6 +17,23 @@ export const ISSUE_SERVICE =
 
 export const AUTH_HOST = process.env.AUTH_HOST ?? USERS_SERVICE;
 
+/**
+ * OAuth app credentials, issued by the identity service when the app is
+ * registered (`GET /apps/new` while signed in, or `POST /register`). The
+ * client_id is the App resource id — `apps/{client_id}` must resolve on the
+ * identity service or every endpoint returns "no app with this client_id".
+ *
+ * Both are optional: unset, we fall back to the client-id-less flow. That
+ * fallback cannot carry a `state` value (see the signin route), so registering
+ * an app is the supported path.
+ */
+export const AUTH_CLIENT_ID = process.env.AUTH_CLIENT_ID ?? "";
+export const AUTH_CLIENT_SECRET = process.env.AUTH_CLIENT_SECRET ?? "";
+
+if (AUTH_CLIENT_ID && !AUTH_CLIENT_SECRET) {
+  throw new Error("AUTH_CLIENT_ID is set but AUTH_CLIENT_SECRET is missing; /token rejects one without the other");
+}
+
 export const ACCESS_TOKEN_COOKIE = "access_token";
 export const REFRESH_TOKEN_COOKIE = "refresh_token";
 export const STATE_COOKIE = "auth_state";

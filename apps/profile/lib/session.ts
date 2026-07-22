@@ -2,6 +2,8 @@ import { cookies } from "next/headers";
 
 import {
   ACCESS_TOKEN_COOKIE,
+  AUTH_CLIENT_ID,
+  AUTH_CLIENT_SECRET,
   AUTH_HOST,
   REFRESH_COOKIE_MAX_AGE_SECONDS,
   REFRESH_TOKEN_COOKIE,
@@ -59,14 +61,22 @@ export function jwtExpiry(token: string): number {
   }
 }
 
-/** Client-id-less token exchange/refresh against the identity service. */
+/**
+ * Token exchange/refresh against the identity service. Credentials are sent as
+ * `client_secret_post` when an app is registered; /token rejects a client_id
+ * without a matching secret, so both are attached or neither is.
+ */
 export async function requestTokens(
   body: Record<string, string>,
 ): Promise<TokenResponse | null> {
+  const payload = AUTH_CLIENT_ID
+    ? { ...body, client_id: AUTH_CLIENT_ID, client_secret: AUTH_CLIENT_SECRET }
+    : body;
+
   const res = await fetch(`${AUTH_HOST}/token`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    body: JSON.stringify(payload),
     cache: "no-store",
   });
   if (!res.ok) {
