@@ -2,7 +2,8 @@
  * Checks GCP_CREDENTIALS_JSON can mint an ID token for the users service and
  * that the token's email claim is the one the gRPC interceptor demands.
  *
- * Run from apps/profile:  node --env-file=.env.local scripts/verify-gcp-creds.mjs
+ * Run from any app dir:  node --env-file=.env.local ../../packages/auth/scripts/verify-gcp-creds.mjs
+ * or via the app's package.json script:  pnpm verify:creds
  */
 import { GoogleAuth } from "google-auth-library";
 

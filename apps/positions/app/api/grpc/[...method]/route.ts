@@ -11,5 +11,4 @@ export const POST = createGrpcProxyHandler([
   "interface.ti.users.v1.UsersService",
   "interface.ti.users.v1.OrganisationsService",
   "interface.ti.positions.v1.PositionsService",
-  "interface.ti.profiles.v1.MirrorService",
 ]);

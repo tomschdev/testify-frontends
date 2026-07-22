@@ -34,9 +34,24 @@ if (AUTH_CLIENT_ID && !AUTH_CLIENT_SECRET) {
   throw new Error("AUTH_CLIENT_ID is set but AUTH_CLIENT_SECRET is missing; /token rejects one without the other");
 }
 
-export const ACCESS_TOKEN_COOKIE = "access_token";
-export const REFRESH_TOKEN_COOKIE = "refresh_token";
-export const STATE_COOKIE = "auth_state";
+/**
+ * Cookie names are namespaced by client_id, because tokens are bound to the
+ * OAuth app that minted them: /token rejects a refresh token whose ClientId is
+ * not the caller's, with 412 "client_id mismatch" (main.go:1182), and likewise
+ * an auth code (main.go:1144).
+ *
+ * In development all three apps run on localhost:3000 and therefore share one
+ * cookie jar. With fixed names, signing into one app leaves the other two
+ * reading a token they cannot use — their pages see a cookie and render the
+ * signed-in UI, then every gRPC call fails. Keying the cookie by client_id
+ * makes the jars disjoint, which also means a re-registered app's stale
+ * cookies are simply ignored rather than half-working.
+ */
+const cookieSuffix = AUTH_CLIENT_ID ? `_${AUTH_CLIENT_ID.slice(0, 8)}` : "";
+
+export const ACCESS_TOKEN_COOKIE = `access_token${cookieSuffix}`;
+export const REFRESH_TOKEN_COOKIE = `refresh_token${cookieSuffix}`;
+export const STATE_COOKIE = `auth_state${cookieSuffix}`;
 
 /** Refresh-token lifetime on the identity service is 7 days. */
 export const REFRESH_COOKIE_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;

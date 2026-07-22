@@ -7,7 +7,8 @@
  * reachable *after* idtoken.Validate passes. Getting it means the interceptor
  * accepted us; Unauthenticated would mean it did not.
  *
- * Run from apps/profile: node --env-file=.env.local scripts/verify-grpc-reachable.mjs
+ * Run from any app dir: node --env-file=.env.local ../../packages/auth/scripts/verify-grpc-reachable.mjs
+ * or via the app's package.json script:  pnpm verify:grpc
  */
 import http2 from "node:http2";
 import { GoogleAuth } from "google-auth-library";
