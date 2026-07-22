@@ -60,8 +60,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/ui
       '@internal.ti.alis.build/protobuf':
-        specifier: file:../../vendor/internal.ti.alis.build-protobuf-1.0.13.tgz
-        version: file:vendor/internal.ti.alis.build-protobuf-1.0.13.tgz
+        specifier: file:../../vendor/internal.ti.alis.build-protobuf-1.0.14.tgz
+        version: file:vendor/internal.ti.alis.build-protobuf-1.0.14.tgz
       google-protobuf:
         specifier: ^4.0.2
         version: 4.0.2
@@ -339,6 +339,10 @@ packages:
   '@internal.ti.alis.build/protobuf@file:vendor/internal.ti.alis.build-protobuf-1.0.13.tgz':
     resolution: {integrity: sha512-FdDQ4H2INpjscyyDFVFG1GzFEYU0VHb0NLqN/pMkIK4xSUVqGvhQTTAWTEkxGipttxsa55zA17pNjUymZbMqsA==, tarball: file:vendor/internal.ti.alis.build-protobuf-1.0.13.tgz}
     version: 1.0.13
+
+  '@internal.ti.alis.build/protobuf@file:vendor/internal.ti.alis.build-protobuf-1.0.14.tgz':
+    resolution: {integrity: sha512-0tXFiSU2e4onVa7COjE7y9QlszkUhDtZTeqEn3y+KQCSmNlunlIZRlKPMYcq5E57HftouqVK8mj2Vn06k7evCQ==, tarball: file:vendor/internal.ti.alis.build-protobuf-1.0.14.tgz}
+    version: 1.0.14
 
   '@js-sdsl/ordered-map@4.4.2':
     resolution: {integrity: sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==}
@@ -834,6 +838,14 @@ snapshots:
     optional: true
 
   '@internal.ti.alis.build/protobuf@file:vendor/internal.ti.alis.build-protobuf-1.0.13.tgz':
+    dependencies:
+      '@alis-build/google-common-protos': 1.7.0
+      '@grpc/grpc-js': 1.14.4
+      '@open.alis.services/protobuf': 1.200.13
+      google-protobuf: 4.0.2
+      grpc-web: 2.0.2
+
+  '@internal.ti.alis.build/protobuf@file:vendor/internal.ti.alis.build-protobuf-1.0.14.tgz':
     dependencies:
       '@alis-build/google-common-protos': 1.7.0
       '@grpc/grpc-js': 1.14.4

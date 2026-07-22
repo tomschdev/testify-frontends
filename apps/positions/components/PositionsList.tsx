@@ -211,14 +211,20 @@ function PositionCard({
             visible here.
           </div>
         )}
-        {/* Honest about the current backend: position events are not yet
-            published to HCS (positions service TODO), so there is no topic /
-            sequence number to show for the position record itself. */}
-        <div style={{ opacity: 0.5, marginTop: "4px" }}>
-          Position record not yet anchored to HCS — the backend does not publish
-          position events to a consensus topic yet. Requirement matching runs
-          against HCS-anchored credentials issued by the organisation above.
-        </div>
+        {/* Every lifecycle transition is published to the shared HCS position
+            topic; hcs_record back-links the row to its latest event. Absent
+            only on positions created before the HCS wiring landed. */}
+        {position.hcsRecord ? (
+          <div style={{ fontFamily: "monospace", opacity: 0.75, marginTop: "4px" }}>
+            <div>HCS position topic: {position.hcsRecord.topicId}</div>
+            <div>Latest event sequence: {position.hcsRecord.latestSequenceNumber}</div>
+          </div>
+        ) : (
+          <div style={{ opacity: 0.5, marginTop: "4px" }}>
+            Not anchored to HCS — this position predates position events being
+            published to the consensus topic.
+          </div>
+        )}
       </div>
 
       <div style={{ opacity: 0.5, fontSize: "12px", fontFamily: "monospace" }}>
