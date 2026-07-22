@@ -2,6 +2,7 @@ packages:
   - "apps/*"
   - "packages/*"
 allowBuilds:
+  protobufjs: true
   sharp: true
 minimumReleaseAgeExclude:
   - '@next/env@16.2.11'
