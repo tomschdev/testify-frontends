@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "@attestant/auth";
 import { SiteShell, siteThemes } from "@attestant/ui";
 
-import { Organisations } from "@/components/Organisations";
+import { IssuerConsole } from "@/components/IssuerConsole";
 
 const linkStyle = {
   display: "inline-block",
@@ -26,17 +26,12 @@ export default async function Home() {
       site="issuer"
       name="Issuer Console"
       audience="For organisations"
-      purpose="Create your organisation, mint XP tokens, and issue XP and reputation credentials to candidates."
+      purpose="Create your organisation and issue XP and reputation credentials to candidates."
     >
       <div style={{ marginTop: "24px" }}>
         {hasSession ? (
           <>
-            <Organisations />
-            <p style={{ opacity: 0.55, fontSize: "13px", marginTop: "20px" }}>
-              Credential issuance and XP minting are not wired up yet: the
-              vendored protobuf bundle ships no generated client for the issue
-              service.
-            </p>
+            <IssuerConsole />
             <a href="/auth/signout" style={linkStyle}>
               Sign out
             </a>

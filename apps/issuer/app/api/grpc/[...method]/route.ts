@@ -7,10 +7,13 @@ export const dynamic = "force-dynamic";
  * `unknown method`; add the service here (and to SERVICE_HOSTS in
  * @attestant/auth/grpc if it is new) to open it up.
  *
- * The issue service is deliberately absent: the vendored protobuf bundle ships
- * no generated client for it, so credential issuance cannot be called yet.
+ * MirrorService is here for recipient resolution (GetHederaAccount before
+ * issuing) and issuance confirmation (ListCredentials polling). The issue
+ * service itself is not gRPC — issuance goes through /api/issue, which calls
+ * issue-v1's plain HTTP endpoints server-side.
  */
 export const POST = createGrpcProxyHandler([
   "interface.ti.users.v1.UsersService",
   "interface.ti.users.v1.OrganisationsService",
+  "interface.ti.profiles.v1.MirrorService",
 ]);
