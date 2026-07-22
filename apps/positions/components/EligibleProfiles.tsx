@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { tokens } from "@attestant/ui";
 import { SearchProfilesRequest, SearchProfilesResponse } from "@internal.ti.alis.build/protobuf/interface/ti/profiles/v1/mirror_pb";
 
 import { mirrorClient } from "@/lib/clients";
@@ -58,7 +59,7 @@ export function EligibleProfiles({
   if (state.phase === "error") {
     return (
       <div style={{ fontSize: "13px" }}>
-        <p style={{ color: "#fca5a5", margin: "0 0 6px" }}>
+        <p style={{ color: tokens.color.danger, margin: "0 0 6px" }}>
           Could not fetch eligible profiles from the mirror: {state.message}
         </p>
         <button type="button" onClick={start} style={smallButtonStyle}>
@@ -77,7 +78,7 @@ export function EligibleProfiles({
           of the configured filter text or active flags. Filters persist and
           toggle, but do not change this answer until a filter-compiling
           matcher lands backend-side. */}
-      <p style={{ margin: 0, fontSize: "12px", color: "#fcd34d", opacity: 0.9 }}>
+      <p style={{ margin: 0, fontSize: "12px", color: tokens.color.warning, opacity: 0.9 }}>
         Eligibility is evaluated against the standard XP + Reputation
         predicate for this position&apos;s organisation — configured filters are
         not yet enforced by the matcher.
@@ -97,7 +98,7 @@ export function EligibleProfiles({
             <li
               key={profile.hederaAccountAddress || profile.user}
               style={{
-                border: "1px solid #232a3a",
+                border: `${tokens.border.default} solid ${tokens.color.border}`,
                 borderRadius: "8px",
                 padding: "8px 10px",
                 display: "flex",
@@ -131,8 +132,8 @@ export function EligibleProfiles({
 }
 
 const smallButtonStyle = {
-  background: "rgba(255, 255, 255, 0.04)",
-  border: "1px solid #232a3a",
+  background: tokens.color.surface,
+  border: `${tokens.border.default} solid ${tokens.color.border}`,
   borderRadius: "8px",
   padding: "5px 10px",
   color: "inherit",

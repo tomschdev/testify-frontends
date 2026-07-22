@@ -9,31 +9,42 @@ import type {
 import { tokens } from "./tokens";
 
 /**
- * Form-control base style shared by Input, Select and Button. This is the
- * inline `inputStyle` object that was previously duplicated per app
- * (Organisations.tsx, CreatePosition.tsx) — one definition, three consoles,
- * visibly one product.
+ * Form-control base style shared by Input, Select and Button: white fill, a
+ * hard ink border, one soft radius. This is the neo-brutalist replacement for
+ * the `inputStyle` object that was duplicated per app — one definition, three
+ * consoles, visibly one product.
  */
 export const controlStyle: CSSProperties = {
-  background: "rgba(255, 255, 255, 0.04)",
-  border: `1px solid ${tokens.color.border}`,
-  borderRadius: "8px",
-  padding: "9px 11px",
-  color: "inherit",
+  background: tokens.color.surface,
+  border: `${tokens.border.default} solid ${tokens.color.ink}`,
+  borderRadius: tokens.radius.md,
+  padding: "9px 12px",
+  color: tokens.color.text,
   font: "inherit",
+  fontWeight: 600,
 };
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {}
 
-export function Input({ style, ...rest }: InputProps): ReactNode {
-  return <input style={{ ...controlStyle, ...style }} {...rest} />;
+export function Input({ style, className, ...rest }: InputProps): ReactNode {
+  return (
+    <input
+      className={["neo-input", className].filter(Boolean).join(" ")}
+      style={{ ...controlStyle, ...style }}
+      {...rest}
+    />
+  );
 }
 
 export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {}
 
-export function Select({ style, children, ...rest }: SelectProps): ReactNode {
+export function Select({ style, className, children, ...rest }: SelectProps): ReactNode {
   return (
-    <select style={{ ...controlStyle, ...style }} {...rest}>
+    <select
+      className={["neo-input", className].filter(Boolean).join(" ")}
+      style={{ ...controlStyle, ...style }}
+      {...rest}
+    >
       {children}
     </select>
   );
@@ -43,6 +54,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** Shows this label instead of children while truthy, and disables the button. */
   busy?: boolean;
   busyLabel?: string;
+  /** Fill colour — pass a site accent or a Neo bright for the primary action. */
+  tone?: string;
 }
 
 export function Button({
@@ -50,7 +63,9 @@ export function Button({
   busyLabel,
   disabled,
   style,
+  className,
   children,
+  tone,
   type = "button",
   ...rest
 }: ButtonProps): ReactNode {
@@ -59,11 +74,14 @@ export function Button({
     <button
       type={type}
       disabled={inactive}
+      className={["neo-interactive", className].filter(Boolean).join(" ")}
       style={{
         ...controlStyle,
+        background: tone ?? tokens.color.surface,
+        boxShadow: inactive ? tokens.shadow.none : tokens.shadow.sm,
         cursor: inactive ? "default" : "pointer",
         opacity: inactive ? 0.5 : 1,
-        fontWeight: 600,
+        fontWeight: 700,
         ...style,
       }}
       {...rest}
@@ -74,26 +92,31 @@ export function Button({
 }
 
 export interface CardProps {
-  /** Border colour, typically `siteThemes.<site>.accentSoft`-adjacent rgba. */
+  /** Border colour; defaults to ink. Pass a site accent for a branded card. */
   borderColor?: string;
   /** Render as a list item inside <ul> lists. */
   as?: "div" | "li" | "section";
+  /** Hard drop-shadow depth; `"none"` for flat cards inside already-raised UI. */
+  elevation?: "none" | "sm" | "md" | "lg";
   style?: CSSProperties;
   children?: ReactNode;
 }
 
 export function Card({
-  borderColor = tokens.color.border,
+  borderColor = tokens.color.ink,
   as: Tag = "div",
+  elevation = "sm",
   style,
   children,
 }: CardProps): ReactNode {
   return (
     <Tag
       style={{
-        border: `1px solid ${borderColor}`,
+        background: tokens.color.surface,
+        border: `${tokens.border.default} solid ${borderColor}`,
         borderRadius: tokens.radius.md,
-        padding: "12px 14px",
+        boxShadow: tokens.shadow[elevation],
+        padding: "14px 16px",
         display: "grid",
         gap: "8px",
         ...style,
@@ -110,42 +133,59 @@ export interface SectionHeaderProps {
 
 export function SectionHeader({ children }: SectionHeaderProps): ReactNode {
   return (
-    <h2 style={{ fontSize: "15px", margin: "0 0 10px", opacity: 0.75 }}>{children}</h2>
+    <h2
+      style={{
+        fontSize: "13px",
+        fontWeight: 800,
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+        margin: "0 0 12px",
+        color: tokens.color.text,
+      }}
+    >
+      {children}
+    </h2>
   );
 }
 
 export type BadgeTone = "neutral" | "success" | "warning" | "danger" | "info";
 
+// Bright fills so the black label stays legible — the neo chip idiom. These
+// are the tints of the semantic status colours, not the (darker) text ones.
 const badgeToneColor: Record<BadgeTone, string> = {
-  neutral: tokens.color.textMuted,
-  success: tokens.color.success,
-  warning: tokens.color.warning,
-  danger: tokens.color.danger,
-  info: tokens.color.info,
+  neutral: tokens.color.surface, // white
+  success: tokens.palette.tertiary, // mint
+  warning: tokens.palette.secondary, // yellow
+  danger: tokens.color.danger, // coral
+  info: tokens.palette.primary, // sky blue
 };
 
 export interface BadgeProps {
   tone?: BadgeTone;
-  /** Overrides the tone colour, e.g. `siteThemes.issuer.accent` for site-branded chips. */
+  /** Overrides the tone fill, e.g. `siteThemes.issuer.accent` for site chips. */
   color?: string;
   children?: ReactNode;
 }
 
-/** Small chip for roles, credential types and pending/confirmed states. */
+/**
+ * Small chip for roles, credential types and pending/confirmed states. Neo
+ * style: bright fill, ink border + tiny hard shadow, black uppercase label.
+ */
 export function Badge({ tone = "neutral", color, children }: BadgeProps): ReactNode {
-  const c = color ?? badgeToneColor[tone];
+  const fill = color ?? badgeToneColor[tone];
   return (
     <span
       style={{
         display: "inline-block",
         fontSize: "11px",
-        fontWeight: 600,
+        fontWeight: 700,
         letterSpacing: "0.05em",
         textTransform: "uppercase",
-        color: c,
-        background: "rgba(255, 255, 255, 0.06)",
-        border: `1px solid ${c}40`,
-        borderRadius: "999px",
+        color: tokens.color.ink,
+        background: fill,
+        border: `${tokens.border.thin} solid ${tokens.color.ink}`,
+        boxShadow: tokens.shadow.sm,
+        borderRadius: tokens.radius.sm,
         padding: "2px 8px",
         verticalAlign: "middle",
       }}
@@ -173,6 +213,7 @@ export function Toggle({ checked, onChange, disabled = false, label }: TogglePro
         cursor: disabled ? "default" : "pointer",
         opacity: disabled ? 0.5 : 1,
         fontSize: "13px",
+        fontWeight: 600,
       }}
     >
       <button
@@ -183,11 +224,11 @@ export function Toggle({ checked, onChange, disabled = false, label }: TogglePro
         disabled={disabled}
         onClick={() => onChange?.(!checked)}
         style={{
-          width: "34px",
-          height: "20px",
-          borderRadius: "999px",
-          border: `1px solid ${tokens.color.border}`,
-          background: checked ? tokens.color.success : "rgba(255, 255, 255, 0.06)",
+          width: "40px",
+          height: "24px",
+          borderRadius: tokens.radius.sm,
+          border: `${tokens.border.default} solid ${tokens.color.ink}`,
+          background: checked ? tokens.palette.tertiary : tokens.color.surface,
           position: "relative",
           padding: 0,
           cursor: "inherit",
@@ -196,12 +237,12 @@ export function Toggle({ checked, onChange, disabled = false, label }: TogglePro
         <span
           style={{
             position: "absolute",
-            top: "2px",
-            left: checked ? "16px" : "2px",
-            width: "14px",
-            height: "14px",
-            borderRadius: "50%",
-            background: tokens.color.text,
+            top: "1px",
+            left: checked ? "18px" : "1px",
+            width: "18px",
+            height: "18px",
+            borderRadius: "4px",
+            background: tokens.color.ink,
             transition: "left 120ms ease",
           }}
         />

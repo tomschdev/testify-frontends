@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { tokens } from "@attestant/ui";
 import { GetIamPolicyRequest } from "@alis-build/google-common-protos/google/iam/v1/iam_policy_pb";
 import { Organisation } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/organisation_pb";
 import { RetrieveMyUserRequest } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/user_pb";
@@ -111,7 +112,7 @@ export function OrgList({
           <li
             key={org.name}
             style={{
-              border: "1px solid #232a3a",
+              border: `${tokens.border.default} solid ${tokens.color.border}`,
               borderRadius: "8px",
               padding: "8px 12px",
               display: "flex",

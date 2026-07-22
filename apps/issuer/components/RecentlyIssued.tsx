@@ -97,7 +97,7 @@ function IssuedCard({ entry }: { entry: IssuedEntry }): React.ReactNode {
   const meta = STATUS_META[status] ?? STATUS_META.pending;
 
   return (
-    <Card as="li" borderColor="rgba(165, 180, 252, 0.25)">
+    <Card as="li" borderColor={siteThemes.issuer.accent}>
       <div style={{ display: "flex", alignItems: "baseline", gap: "10px", flexWrap: "wrap" }}>
         <Badge color={siteThemes.issuer.accent}>{TYPE_LABEL[entry.type]}</Badge>
         <span style={{ fontWeight: 600 }}>{entry.title}</span>

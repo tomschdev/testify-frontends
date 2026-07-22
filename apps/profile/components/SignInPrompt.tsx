@@ -1,21 +1,24 @@
 import type { ReactNode } from "react";
 
-import { siteThemes } from "@attestant/ui";
+import { siteThemes, tokens } from "@attestant/ui";
 
 /** Session-gated menus render this when no session cookie is present. */
 export function SignInPrompt({ what }: { what: string }): ReactNode {
   return (
     <div style={{ display: "grid", gap: "16px", justifyItems: "start" }}>
-      <p style={{ opacity: 0.7, margin: 0 }}>Sign in to see {what}.</p>
+      <p style={{ color: tokens.color.textMuted, margin: 0 }}>Sign in to see {what}.</p>
       <a
         href="/auth/signin"
+        className="neo-interactive"
         style={{
           display: "inline-block",
           padding: "10px 18px",
-          borderRadius: "10px",
-          background: siteThemes.profile.accentSoft,
-          color: siteThemes.profile.accent,
-          fontWeight: 600,
+          borderRadius: tokens.radius.md,
+          background: siteThemes.profile.accent,
+          color: tokens.color.ink,
+          border: `${tokens.border.default} solid ${tokens.color.ink}`,
+          boxShadow: tokens.shadow.sm,
+          fontWeight: 700,
           textDecoration: "none",
         }}
       >

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { tokens } from "@attestant/ui";
 import { Organisation } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/organisation_pb";
 import {
   ListPositionsRequest,
@@ -77,7 +78,7 @@ export function PositionsList({
   if (state.phase === "error") {
     if (isSessionError(state.message)) {
       return (
-        <p style={{ color: "#fca5a5" }}>
+        <p style={{ color: tokens.color.danger }}>
           Your session is not valid for this app.{" "}
           <a href="/auth/signin" style={{ color: "inherit" }}>
             Sign in again
@@ -87,7 +88,7 @@ export function PositionsList({
       );
     }
     return (
-      <p style={{ color: "#fca5a5" }}>
+      <p style={{ color: tokens.color.danger }}>
         Could not fetch positions from the positions service: {state.message}
       </p>
     );

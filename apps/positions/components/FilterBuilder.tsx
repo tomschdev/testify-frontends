@@ -9,6 +9,7 @@ import {
   type FilterSpec,
   type WireFilter,
 } from "@attestant/filter-spec";
+import { tokens } from "@attestant/ui";
 import { Organisation } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/organisation_pb";
 
 import { Toggle } from "@/components/primitives";
@@ -114,7 +115,7 @@ export function FilterBuilder({
         />
       ))}
       {draftsHaveDuplicates(drafts) && (
-        <p style={{ color: "#fca5a5", fontSize: "12px", margin: 0 }}>
+        <p style={{ color: tokens.color.danger, fontSize: "12px", margin: 0 }}>
           Two filters render to the same criterion — filters are unique by
           content, so make them differ or remove one.
         </p>
@@ -145,7 +146,7 @@ function FilterRow({
   return (
     <div
       style={{
-        border: "1px solid #232a3a",
+        border: `${tokens.border.default} solid ${tokens.color.border}`,
         borderRadius: "8px",
         padding: "10px 12px",
         display: "grid",
@@ -230,7 +231,7 @@ function FilterRow({
             marginLeft: "auto",
             background: "none",
             border: "none",
-            color: "#fca5a5",
+            color: tokens.color.danger,
             fontSize: "12px",
             cursor: disabled ? "default" : "pointer",
             opacity: disabled ? 0.5 : 0.8,
@@ -250,8 +251,8 @@ function FilterRow({
 }
 
 const builderInputStyle = {
-  background: "rgba(255, 255, 255, 0.04)",
-  border: "1px solid #232a3a",
+  background: tokens.color.surface,
+  border: `${tokens.border.default} solid ${tokens.color.border}`,
   borderRadius: "8px",
   padding: "6px 9px",
   color: "inherit",

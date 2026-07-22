@@ -5,6 +5,8 @@ import { useCallback, useEffect, useState } from "react";
 import { ListPositionsRequest, SearchProfilesRequest } from "@internal.ti.alis.build/protobuf/interface/ti/profiles/v1/mirror_pb";
 import { Position, PositionState } from "@internal.ti.alis.build/protobuf/interface/ti/positions/v1/positions_pb";
 
+import { siteThemes, tokens } from "@attestant/ui";
+
 import { Badge, EmptyState, ErrorState, SectionHeader, buttonStyle } from "@/components/primitives";
 import { errorMessage, mirrorClient } from "@/lib/clients";
 import { useMyUser } from "@/lib/useMyUser";
@@ -121,7 +123,7 @@ export function JobsPanel({ hasSession }: { hasSession: boolean }): React.ReactN
       <SectionHeader
         title="Job feed"
         aside={
-          <button type="button" style={buttonStyle} onClick={loadFeed}>
+          <button type="button" className="neo-interactive" style={buttonStyle} onClick={loadFeed}>
             Refresh
           </button>
         }
@@ -219,9 +221,11 @@ function PositionCard({
   return (
     <li
       style={{
-        border: "1px solid rgba(94, 234, 212, 0.2)",
-        borderRadius: "10px",
-        padding: "12px 14px",
+        background: tokens.color.surface,
+        border: `${tokens.border.default} solid ${siteThemes.profile.accent}`,
+        borderRadius: tokens.radius.md,
+        boxShadow: tokens.shadow.sm,
+        padding: "14px 16px",
         display: "grid",
         gap: "8px",
       }}
@@ -258,7 +262,8 @@ function PositionCard({
             Console's "Invite for interview". No application flow exists. */}
         <button
           type="button"
-          style={{ ...buttonStyle, borderColor: "rgba(94, 234, 212, 0.4)", color: "#5eead4" }}
+          className="neo-interactive"
+          style={{ ...buttonStyle, background: siteThemes.profile.accent, color: tokens.color.ink }}
           onClick={() => undefined}
           title="Demo only — applications are not wired up yet"
         >

@@ -1,5 +1,6 @@
 export { SiteShell, type SiteShellProps } from "./SiteShell";
 export { tokens, siteThemes, type SiteKey, type SiteTheme } from "./tokens";
+export { neoGlobalCss } from "./globalCss";
 export {
   Badge,
   Button,

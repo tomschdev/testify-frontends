@@ -14,6 +14,7 @@ import {
   EmptyState,
   Input,
   SectionHeader,
+  siteThemes,
   tokens,
   type BadgeTone,
 } from "@attestant/ui";
@@ -91,7 +92,7 @@ export function Organisations({
             {organisations.map((org) => {
               const role = roles[org.name];
               return (
-                <Card key={org.name} as="li" borderColor="rgba(165, 180, 252, 0.25)">
+                <Card key={org.name} as="li" borderColor={siteThemes.issuer.accent}>
                   <div style={{ display: "flex", alignItems: "baseline", gap: "10px" }}>
                     <span style={{ fontWeight: 600 }}>{org.displayName}</span>
                     {/* No chip when the caller's binding could not be resolved

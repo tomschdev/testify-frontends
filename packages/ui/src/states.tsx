@@ -44,7 +44,7 @@ export function ErrorState({
 }: ErrorStateProps): ReactNode {
   if (isSessionError(message)) {
     return (
-      <p style={{ color: tokens.color.danger, margin: 0 }}>
+      <p style={{ color: tokens.color.danger, fontWeight: 600, margin: 0 }}>
         Your session is not valid for this app.{" "}
         <a href={signInHref} style={{ color: "inherit" }}>
           Sign in again

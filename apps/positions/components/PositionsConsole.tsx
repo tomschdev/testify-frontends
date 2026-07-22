@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { tokens } from "@attestant/ui";
+
 import {
   ListMyOrganisationsRequest,
   Organisation,
@@ -51,7 +53,7 @@ export function PositionsConsole(): React.ReactNode {
   if (orgs.phase === "error") {
     if (isSessionError(orgs.message)) {
       return (
-        <p style={{ color: "#fca5a5" }}>
+        <p style={{ color: tokens.color.danger }}>
           Your session is not valid for this app.{" "}
           <a href="/auth/signin" style={{ color: "inherit" }}>
             Sign in again
@@ -61,7 +63,7 @@ export function PositionsConsole(): React.ReactNode {
       );
     }
     return (
-      <p style={{ color: "#fca5a5" }}>
+      <p style={{ color: tokens.color.danger }}>
         Could not fetch your organisations from the users service: {orgs.message}
       </p>
     );

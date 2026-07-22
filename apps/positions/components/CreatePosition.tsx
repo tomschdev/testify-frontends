@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { tokens } from "@attestant/ui";
 import { Organisation } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/organisation_pb";
 import {
   CreatePositionRequest,
@@ -160,7 +161,7 @@ export function CreatePosition({
         defaultIssuer={orgName}
       />
       {drafts.length === 0 && (
-        <p style={{ color: "#fcd34d", fontSize: "12px", margin: 0 }}>
+        <p style={{ color: tokens.color.warning, fontSize: "12px", margin: 0 }}>
           Add at least one filter to post this position.
         </p>
       )}
@@ -179,17 +180,18 @@ export function CreatePosition({
         {posting ? "Posting…" : "Post position"}
       </button>
       {postError && (
-        <p style={{ color: "#fca5a5", fontSize: "14px", margin: 0 }}>{postError}</p>
+        <p style={{ color: tokens.color.danger, fontSize: "14px", margin: 0 }}>{postError}</p>
       )}
     </div>
   );
 }
 
 const inputStyle = {
-  background: "rgba(255, 255, 255, 0.04)",
-  border: "1px solid #232a3a",
-  borderRadius: "8px",
+  background: tokens.color.surface,
+  border: `${tokens.border.default} solid ${tokens.color.border}`,
+  borderRadius: tokens.radius.md,
   padding: "9px 11px",
   color: "inherit",
   font: "inherit",
+  fontWeight: 600,
 } as const;

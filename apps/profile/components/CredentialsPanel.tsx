@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 
 import { Credential, ListCredentialsRequest, GetTokenRequest, ListTokenHoldingsRequest } from "@internal.ti.alis.build/protobuf/interface/ti/profiles/v1/mirror_pb";
 
+import { siteThemes, tokens } from "@attestant/ui";
+
 import { Badge, EmptyState, ErrorState, SectionHeader, buttonStyle } from "@/components/primitives";
 import { errorMessage, isSessionError, mirrorClient } from "@/lib/clients";
 import { useBoundedPoll } from "@/lib/useBoundedPoll";
@@ -134,7 +136,7 @@ export function CredentialsPanel(): React.ReactNode {
   return (
     <div style={{ display: "grid", gap: "24px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-        <button type="button" style={buttonStyle} onClick={poll.polling ? poll.stop : poll.start}>
+        <button type="button" className="neo-interactive" style={buttonStyle} onClick={poll.polling ? poll.stop : poll.start}>
           {poll.polling ? "Stop auto-refresh" : "Refresh"}
         </button>
         <span style={{ fontSize: "12px", opacity: 0.6 }}>
@@ -241,8 +243,10 @@ function CredentialList({
 }
 
 const rowStyle: React.CSSProperties = {
-  border: "1px solid rgba(94, 234, 212, 0.2)",
-  borderRadius: "10px",
+  background: tokens.color.surface,
+  border: `${tokens.border.default} solid ${siteThemes.profile.accent}`,
+  borderRadius: tokens.radius.md,
+  boxShadow: tokens.shadow.sm,
   padding: "10px 14px",
   display: "flex",
   justifyContent: "space-between",

@@ -17,11 +17,16 @@ export type MenuKey = (typeof MENUS)[number]["href"];
 export function ProfileNav({ active }: { active?: MenuKey }): ReactNode {
   return (
     <nav style={{ display: "flex", gap: "8px", margin: "20px 0", flexWrap: "wrap" }}>
-      <a href="/" style={linkStyle(false)}>
+      <a href="/" className="neo-interactive" style={linkStyle(false)}>
         Home
       </a>
       {MENUS.map((menu) => (
-        <a key={menu.href} href={menu.href} style={linkStyle(menu.href === active)}>
+        <a
+          key={menu.href}
+          href={menu.href}
+          className="neo-interactive"
+          style={linkStyle(menu.href === active)}
+        >
           {menu.label}
         </a>
       ))}
@@ -33,11 +38,12 @@ function linkStyle(isActive: boolean): React.CSSProperties {
   return {
     padding: "8px 16px",
     borderRadius: tokens.radius.md,
-    fontWeight: 600,
+    fontWeight: 700,
     fontSize: "14px",
     textDecoration: "none",
-    color: isActive ? siteThemes.profile.accent : tokens.color.textMuted,
-    background: isActive ? siteThemes.profile.accentSoft : "transparent",
-    border: `1px solid ${isActive ? "transparent" : tokens.color.border}`,
+    color: tokens.color.ink,
+    background: isActive ? siteThemes.profile.accent : tokens.color.surface,
+    border: `${tokens.border.default} solid ${tokens.color.ink}`,
+    boxShadow: isActive ? tokens.shadow.sm : tokens.shadow.none,
   };
 }

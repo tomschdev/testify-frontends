@@ -5,7 +5,7 @@ import { useState } from "react";
 import * as fieldMaskPb from "google-protobuf/google/protobuf/field_mask_pb";
 
 import { parseFilterCriteria } from "@attestant/filter-spec";
-import { HederaRef, OnChainPanel } from "@attestant/ui";
+import { HederaRef, OnChainPanel, siteThemes, tokens } from "@attestant/ui";
 import { Organisation } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/organisation_pb";
 import {
   Filter,
@@ -30,10 +30,10 @@ import { errorMessage } from "@/lib/grpcError";
 import { composeDescription, splitDescription } from "@/lib/location";
 
 const STATE_LABELS: Record<PositionState, { label: string; color: string }> = {
-  [PositionState.POSITION_STATE_UNSPECIFIED]: { label: "Unknown", color: "#94a3b8" },
-  [PositionState.POSITION_STATE_OPEN]: { label: "Open", color: "#86efac" },
-  [PositionState.POSITION_STATE_REVOKED]: { label: "Revoked", color: "#fca5a5" },
-  [PositionState.POSITION_STATE_FULFILLED]: { label: "Fulfilled", color: "#93c5fd" },
+  [PositionState.POSITION_STATE_UNSPECIFIED]: { label: "Unknown", color: tokens.color.textMuted },
+  [PositionState.POSITION_STATE_OPEN]: { label: "Open", color: tokens.color.success },
+  [PositionState.POSITION_STATE_REVOKED]: { label: "Revoked", color: tokens.color.danger },
+  [PositionState.POSITION_STATE_FULFILLED]: { label: "Fulfilled", color: tokens.color.info },
 };
 
 interface TimestampObject {
@@ -154,9 +154,11 @@ export function PositionCard({
   return (
     <li
       style={{
-        border: "1px solid rgba(252, 165, 165, 0.25)",
-        borderRadius: "10px",
-        padding: "12px 14px",
+        background: tokens.color.surface,
+        border: `${tokens.border.default} solid ${siteThemes.positions.accent}`,
+        borderRadius: tokens.radius.md,
+        boxShadow: tokens.shadow.sm,
+        padding: "14px 16px",
         display: "grid",
         gap: "8px",
       }}
@@ -230,7 +232,7 @@ export function PositionCard({
                         onChange={() => void toggleFilter(index)}
                       />
                     ) : (
-                      <Badge color={f.active ? "#86efac" : "#94a3b8"}>
+                      <Badge color={f.active ? tokens.color.success : tokens.color.textMuted}>
                         {f.active ? "active" : "inactive"}
                       </Badge>
                     )}
@@ -246,7 +248,7 @@ export function PositionCard({
             </div>
           )}
           {writeError && (
-            <p style={{ color: "#fca5a5", fontSize: "13px", margin: 0 }}>{writeError}</p>
+            <p style={{ color: tokens.color.danger, fontSize: "13px", margin: 0 }}>{writeError}</p>
           )}
         </>
       )}
@@ -258,7 +260,7 @@ export function PositionCard({
         <Field label="Updated" value={formatTime(position.updateTime)} />
       </dl>
 
-      <OnChainPanel borderColor="rgba(252, 165, 165, 0.15)">
+      <OnChainPanel borderColor={siteThemes.positions.accent}>
         {org ? (
           <>
             <HederaRef
@@ -416,7 +418,7 @@ function EditPositionForm({
         disabled={saving}
       />
       {drafts.length === 0 && (
-        <p style={{ color: "#fcd34d", fontSize: "12px", margin: 0 }}>
+        <p style={{ color: tokens.color.warning, fontSize: "12px", margin: 0 }}>
           A position needs at least one filter.
         </p>
       )}
@@ -443,7 +445,7 @@ function EditPositionForm({
         </button>
       </div>
       {saveError && (
-        <p style={{ color: "#fca5a5", fontSize: "13px", margin: 0 }}>{saveError}</p>
+        <p style={{ color: tokens.color.danger, fontSize: "13px", margin: 0 }}>{saveError}</p>
       )}
     </div>
   );
@@ -466,8 +468,8 @@ const fieldGridStyle = {
 } as const;
 
 const smallButtonStyle = {
-  background: "rgba(255, 255, 255, 0.04)",
-  border: "1px solid #232a3a",
+  background: tokens.color.surface,
+  border: `${tokens.border.default} solid ${tokens.color.border}`,
   borderRadius: "8px",
   padding: "5px 10px",
   color: "inherit",
@@ -477,8 +479,8 @@ const smallButtonStyle = {
 } as const;
 
 const editInputStyle = {
-  background: "rgba(255, 255, 255, 0.04)",
-  border: "1px solid #232a3a",
+  background: tokens.color.surface,
+  border: `${tokens.border.default} solid ${tokens.color.border}`,
   borderRadius: "8px",
   padding: "8px 10px",
   color: "inherit",

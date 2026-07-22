@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { siteThemes, tokens } from "@attestant/ui";
+
 import { Badge, SectionHeader } from "@/components/primitives";
 
 /**
@@ -31,8 +33,10 @@ export function WalletPanel(): ReactNode {
           <li
             key={row.symbol}
             style={{
-              border: "1px solid rgba(94, 234, 212, 0.2)",
-              borderRadius: "10px",
+              background: tokens.color.surface,
+              border: `${tokens.border.default} solid ${siteThemes.profile.accent}`,
+              borderRadius: tokens.radius.md,
+              boxShadow: tokens.shadow.sm,
               padding: "10px 14px",
               display: "flex",
               justifyContent: "space-between",

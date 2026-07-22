@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { tokens } from "@attestant/ui";
 import { RetrieveMyUserRequest, User } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/user_pb";
 import { UsersServicePromiseClient } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/user_grpc_web_pb";
 
@@ -33,7 +34,7 @@ export function MyUser(): React.ReactNode {
   }
   if (state.phase === "error") {
     return (
-      <p style={{ color: "#fca5a5" }}>
+      <p style={{ color: tokens.color.danger, fontWeight: 600 }}>
         Could not fetch your user record from the users service: {state.message}
       </p>
     );
