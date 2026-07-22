@@ -1,9 +1,9 @@
 import { cookies } from "next/headers";
 
+import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "@attestant/auth";
 import { SiteShell, siteThemes } from "@attestant/ui";
 
 import { MyUser } from "@/components/MyUser";
-import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "@/lib/config";
 
 const linkStyle = {
   display: "inline-block",

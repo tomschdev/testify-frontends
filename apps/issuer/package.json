@@ -5,15 +5,23 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "verify:creds": "node --env-file=.env.local ../../packages/auth/scripts/verify-gcp-creds.mjs",
+    "verify:grpc": "node --env-file=.env.local ../../packages/auth/scripts/verify-grpc-reachable.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@attestant/auth": "workspace:*",
     "@attestant/ui": "workspace:*",
+    "@internal.ti.alis.build/protobuf": "file:../../vendor/internal.ti.alis.build-protobuf-1.0.13.tgz",
+    "google-protobuf": "^4.0.2",
+    "grpc-web": "^2.0.2",
     "next": "16.2.11",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@types/google-protobuf": "^3.15.12",
     "@types/node": "^24.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

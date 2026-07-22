@@ -10,71 +10,15 @@ importers:
 
   apps/issuer:
     dependencies:
-      '@attestant/ui':
+      '@attestant/auth':
         specifier: workspace:*
-        version: link:../../packages/ui
-      next:
-        specifier: 16.2.11
-        version: 16.2.11(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      react:
-        specifier: 19.2.8
-        version: 19.2.8
-      react-dom:
-        specifier: 19.2.8
-        version: 19.2.8(react@19.2.8)
-    devDependencies:
-      '@types/node':
-        specifier: ^24.0.0
-        version: 24.13.3
-      '@types/react':
-        specifier: ^19.0.0
-        version: 19.2.17
-      '@types/react-dom':
-        specifier: ^19.0.0
-        version: 19.2.3(@types/react@19.2.17)
-      typescript:
-        specifier: ^5.8.0
-        version: 5.9.3
-
-  apps/positions:
-    dependencies:
-      '@attestant/ui':
-        specifier: workspace:*
-        version: link:../../packages/ui
-      next:
-        specifier: 16.2.11
-        version: 16.2.11(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      react:
-        specifier: 19.2.8
-        version: 19.2.8
-      react-dom:
-        specifier: 19.2.8
-        version: 19.2.8(react@19.2.8)
-    devDependencies:
-      '@types/node':
-        specifier: ^24.0.0
-        version: 24.13.3
-      '@types/react':
-        specifier: ^19.0.0
-        version: 19.2.17
-      '@types/react-dom':
-        specifier: ^19.0.0
-        version: 19.2.3(@types/react@19.2.17)
-      typescript:
-        specifier: ^5.8.0
-        version: 5.9.3
-
-  apps/profile:
-    dependencies:
+        version: link:../../packages/auth
       '@attestant/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@internal.ti.alis.build/protobuf':
-        specifier: file:../../vendor/internal.ti.alis.build-protobuf-1.0.11.tgz
-        version: file:vendor/internal.ti.alis.build-protobuf-1.0.11.tgz
-      google-auth-library:
-        specifier: ^10.9.0
-        version: 10.9.0
+        specifier: file:../../vendor/internal.ti.alis.build-protobuf-1.0.13.tgz
+        version: file:vendor/internal.ti.alis.build-protobuf-1.0.13.tgz
       google-protobuf:
         specifier: ^4.0.2
         version: 4.0.2
@@ -103,6 +47,108 @@ importers:
       '@types/react-dom':
         specifier: ^19.0.0
         version: 19.2.3(@types/react@19.2.17)
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
+
+  apps/positions:
+    dependencies:
+      '@attestant/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@attestant/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@internal.ti.alis.build/protobuf':
+        specifier: file:../../vendor/internal.ti.alis.build-protobuf-1.0.13.tgz
+        version: file:vendor/internal.ti.alis.build-protobuf-1.0.13.tgz
+      google-protobuf:
+        specifier: ^4.0.2
+        version: 4.0.2
+      grpc-web:
+        specifier: ^2.0.2
+        version: 2.0.2
+      next:
+        specifier: 16.2.11
+        version: 16.2.11(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      react:
+        specifier: 19.2.8
+        version: 19.2.8
+      react-dom:
+        specifier: 19.2.8
+        version: 19.2.8(react@19.2.8)
+    devDependencies:
+      '@types/google-protobuf':
+        specifier: ^3.15.12
+        version: 3.15.12
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.13.3
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.3(@types/react@19.2.17)
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
+
+  apps/profile:
+    dependencies:
+      '@attestant/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@attestant/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@internal.ti.alis.build/protobuf':
+        specifier: file:../../vendor/internal.ti.alis.build-protobuf-1.0.13.tgz
+        version: file:vendor/internal.ti.alis.build-protobuf-1.0.13.tgz
+      google-protobuf:
+        specifier: ^4.0.2
+        version: 4.0.2
+      grpc-web:
+        specifier: ^2.0.2
+        version: 2.0.2
+      next:
+        specifier: 16.2.11
+        version: 16.2.11(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      react:
+        specifier: 19.2.8
+        version: 19.2.8
+      react-dom:
+        specifier: 19.2.8
+        version: 19.2.8(react@19.2.8)
+    devDependencies:
+      '@types/google-protobuf':
+        specifier: ^3.15.12
+        version: 3.15.12
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.13.3
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.3(@types/react@19.2.17)
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
+
+  packages/auth:
+    dependencies:
+      google-auth-library:
+        specifier: ^10.9.0
+        version: 10.9.0
+    devDependencies:
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.13.3
+      next:
+        specifier: 16.2.11
+        version: 16.2.11(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       typescript:
         specifier: ^5.8.0
         version: 5.9.3
@@ -290,9 +336,9 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@internal.ti.alis.build/protobuf@file:vendor/internal.ti.alis.build-protobuf-1.0.11.tgz':
-    resolution: {integrity: sha512-bJWsBEBMitP30Bok0dkPF7tYKiNx8A43TgQnh/QsZRcnD9PHW/WXiv80yuaB+J5YWbHDeLMQTurvOa03XO7rCQ==, tarball: file:vendor/internal.ti.alis.build-protobuf-1.0.11.tgz}
-    version: 1.0.11
+  '@internal.ti.alis.build/protobuf@file:vendor/internal.ti.alis.build-protobuf-1.0.13.tgz':
+    resolution: {integrity: sha512-FdDQ4H2INpjscyyDFVFG1GzFEYU0VHb0NLqN/pMkIK4xSUVqGvhQTTAWTEkxGipttxsa55zA17pNjUymZbMqsA==, tarball: file:vendor/internal.ti.alis.build-protobuf-1.0.13.tgz}
+    version: 1.0.13
 
   '@js-sdsl/ordered-map@4.4.2':
     resolution: {integrity: sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==}
@@ -787,7 +833,7 @@ snapshots:
   '@img/sharp-win32-x64@0.34.5':
     optional: true
 
-  '@internal.ti.alis.build/protobuf@file:vendor/internal.ti.alis.build-protobuf-1.0.11.tgz':
+  '@internal.ti.alis.build/protobuf@file:vendor/internal.ti.alis.build-protobuf-1.0.13.tgz':
     dependencies:
       '@alis-build/google-common-protos': 1.7.0
       '@grpc/grpc-js': 1.14.4
