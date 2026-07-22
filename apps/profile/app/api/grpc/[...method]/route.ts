@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { POSITIONS_SERVICE, PROFILES_SERVICE, USERS_SERVICE } from "@/lib/config";
+import { serviceIdToken } from "@/lib/googleAuth";
 import { forwardUnary, statusOnlyBody } from "@/lib/grpcProxy";
 import { getValidAccessToken } from "@/lib/session";
 
@@ -28,9 +29,12 @@ function grpcWebResponse(bodyBase64: string, httpStatus = 200): NextResponse {
  * baseUrl '/api/grpc', so calls arrive as
  * POST /api/grpc/{package.Service}/{Method} with a grpc-web-text body.
  * The user's token never reaches the browser: it is read from the httpOnly
- * session cookie here and attached to the upstream call — `authorization` as
- * Bearer plus `x-alis-forwarded-authorization` carrying the end-caller JWT
- * (the alis convention for end-user identity on service-to-service hops).
+ * session cookie here and sent as `x-alis-forwarded-authorization`, the alis
+ * convention for end-user identity on service-to-service hops.
+ *
+ * `authorization` is a separate concern — it identifies *this caller* to the
+ * service and must be a Google ID token for the deployment service account
+ * (see lib/googleAuth.ts). The two are not interchangeable.
  */
 export async function POST(
   req: NextRequest,
@@ -48,6 +52,13 @@ export async function POST(
     return grpcWebResponse(statusOnlyBody(16, "no session - sign in at /auth/signin"));
   }
 
+  const idToken = await serviceIdToken(host);
+  if (!idToken) {
+    return grpcWebResponse(
+      statusOnlyBody(16, "service credentials not configured - set GCP_CREDENTIALS_JSON"),
+    );
+  }
+
   const raw = Buffer.from(await req.arrayBuffer());
   const contentType = req.headers.get("content-type") ?? "";
   const frames = contentType.startsWith(GRPC_WEB_TEXT)
@@ -56,7 +67,7 @@ export async function POST(
 
   try {
     const result = await forwardUnary(host, `/${service}/${method}`, frames, {
-      authorization: `Bearer ${token}`,
+      authorization: `Bearer ${idToken}`,
       "x-alis-forwarded-authorization": token,
     });
     return grpcWebResponse(result.bodyBase64);
