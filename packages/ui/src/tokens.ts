@@ -11,6 +11,12 @@ export const tokens = {
     border: "#232a3a",
     text: "#e8ebf2",
     textMuted: "#8b93a7",
+    // Status colours shared by Badge, ErrorState and the per-app status
+    // labels (previously duplicated as hex literals in each app).
+    success: "#86efac",
+    warning: "#fcd34d",
+    danger: "#fca5a5",
+    info: "#93c5fd",
   },
   font: {
     sans: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",

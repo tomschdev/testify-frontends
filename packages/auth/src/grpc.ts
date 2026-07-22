@@ -48,6 +48,18 @@ export type GrpcProxyHandler = (
   ctx: { params: Promise<{ method: string[] }> },
 ) => Promise<NextResponse>;
 
+export interface GrpcProxyOptions {
+  /**
+   * Fully-qualified methods (`package.Service/Method`) that may be called
+   * without a session. The forward then carries only the SA token and omits
+   * `x-alis-forwarded-authorization` — the backend answers as the deployment
+   * SA, so this is safe only for identity-independent reads (impl spec §6.1:
+   * `MirrorService/ListPositions` and nothing else — an ungated entry is an
+   * SA-backed open proxy, so scope it per method, never per service).
+   */
+  publicMethods?: readonly string[];
+}
+
 /**
  * Builds the app's grpc-web endpoint: the browser PromiseClients are
  * constructed with baseUrl '/api/grpc', so calls arrive as
@@ -60,8 +72,12 @@ export type GrpcProxyHandler = (
  * service and must be a Google ID token for the deployment service account
  * (see googleAuth.ts). The two are not interchangeable.
  */
-export function createGrpcProxyHandler(services: readonly string[]): GrpcProxyHandler {
+export function createGrpcProxyHandler(
+  services: readonly string[],
+  options: GrpcProxyOptions = {},
+): GrpcProxyHandler {
   const hosts = hostsFor(services);
+  const publicMethods = new Set(options.publicMethods ?? []);
 
   return async function POST(
     req: NextRequest,
@@ -75,7 +91,7 @@ export function createGrpcProxyHandler(services: readonly string[]): GrpcProxyHa
     const [service, method] = segments;
 
     const token = await getValidAccessToken();
-    if (!token) {
+    if (!token && !publicMethods.has(`${service}/${method}`)) {
       // Getting here with cookies present means they are unusable: expired
       // past refresh, or minted for a different client_id. Clear them, so the
       // page stops rendering a signed-in UI over a dead session.
@@ -96,10 +112,14 @@ export function createGrpcProxyHandler(services: readonly string[]): GrpcProxyHa
       : raw;
 
     try {
-      const result = await forwardUnary(host, `/${service}/${method}`, frames, {
+      // Public methods without a session forward with the SA token alone; the
+      // backend then answers as the deployment SA (identical data for
+      // identity-independent reads, per impl spec §6.1).
+      const headers: Record<string, string> = {
         authorization: `Bearer ${idToken.token}`,
-        "x-alis-forwarded-authorization": token,
-      });
+        ...(token ? { "x-alis-forwarded-authorization": token } : {}),
+      };
+      const result = await forwardUnary(host, `/${service}/${method}`, frames, headers);
       return grpcWebResponse(result.bodyBase64);
     } catch (err) {
       console.error(`[grpc-proxy] ${service}/${method} failed:`, err);
@@ -108,5 +128,5 @@ export function createGrpcProxyHandler(services: readonly string[]): GrpcProxyHa
   };
 }
 
-export { forwardUnary, statusOnlyBody } from "./grpcProxy";
+export { GrpcStatusError, callUnary, forwardUnary, statusOnlyBody } from "./grpcProxy";
 export { serviceIdToken, type IdTokenResult } from "./googleAuth";

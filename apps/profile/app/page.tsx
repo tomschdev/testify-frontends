@@ -4,6 +4,7 @@ import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "@attestant/auth";
 import { SiteShell, siteThemes } from "@attestant/ui";
 
 import { MyUser } from "@/components/MyUser";
+import { ProfileNav } from "@/components/ProfileNav";
 
 const linkStyle = {
   display: "inline-block",
@@ -28,6 +29,7 @@ export default async function Home() {
       audience="For candidates"
       purpose="View the credentials you hold, sign what needs signing, and browse open positions to see whether you qualify."
     >
+      <ProfileNav />
       <div style={{ marginTop: "24px" }}>
         {hasSession ? (
           <>

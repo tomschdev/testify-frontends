@@ -2,34 +2,18 @@
 
 import { useEffect, useState } from "react";
 
-import { OrganisationsServicePromiseClient } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/organisation_grpc_web_pb";
 import {
   ListMyOrganisationsRequest,
   Organisation,
 } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/organisation_pb";
 
 import { CreatePosition } from "@/components/CreatePosition";
+import { OrgList } from "@/components/OrgList";
 import { PositionsList } from "@/components/PositionsList";
-
-// Same pattern as the alis console apps: grpc-web PromiseClient pointed at the
-// site's own origin; the session token stays server-side (httpOnly cookie) and
-// is attached by the /api/grpc proxy route.
-const orgsClient = new OrganisationsServicePromiseClient("/api/grpc");
+import { orgsClient } from "@/lib/clients";
+import { errorMessage, isSessionError } from "@/lib/grpcError";
 
 const PAGE_SIZE = 50;
-
-/**
- * The proxy answers status 16 with this message when the session cookie is
- * missing or unusable, and clears the cookie on that same response — so a
- * reload lands on the signed-out page.
- */
-function isSessionError(message: string): boolean {
-  return message.includes("no session");
-}
-
-function errorMessage(err: unknown): string {
-  return err instanceof Error ? err.message : String(err);
-}
 
 type OrgsState =
   | { phase: "loading" }
@@ -40,8 +24,9 @@ type OrgsState =
  * Signed-in console body: post a position, see it appear in the list. The
  * user's organisations are fetched once here (ListMyOrganisations scopes to
  * the caller — identity comes from x-alis-forwarded-authorization) and shared
- * by both children: the form needs them as posting targets, the list needs
- * them to show the on-chain identity behind each of the user's own positions.
+ * by the children: the org section shows them with roles, the form needs
+ * them as posting targets, the list needs them to show the on-chain identity
+ * behind each of the user's own positions.
  */
 export function PositionsConsole(): React.ReactNode {
   const [orgs, setOrgs] = useState<OrgsState>({ phase: "loading" });
@@ -85,9 +70,12 @@ export function PositionsConsole(): React.ReactNode {
   return (
     <div style={{ display: "grid", gap: "20px" }}>
       <section>
-        <h2 style={{ fontSize: "15px", margin: "0 0 10px", opacity: 0.75 }}>
-          Post a position
-        </h2>
+        <h2 style={sectionHeadingStyle}>Your organisations</h2>
+        <OrgList organisations={orgs.organisations} />
+      </section>
+
+      <section>
+        <h2 style={sectionHeadingStyle}>Post a position</h2>
         <CreatePosition
           organisations={orgs.organisations}
           onCreated={() => setRefreshToken((n) => n + 1)}
@@ -95,14 +83,19 @@ export function PositionsConsole(): React.ReactNode {
       </section>
 
       <section>
-        <h2 style={{ fontSize: "15px", margin: "0 0 10px", opacity: 0.75 }}>
-          Open positions
-        </h2>
+        <h2 style={sectionHeadingStyle}>Positions</h2>
         <PositionsList
           organisations={orgs.organisations}
           refreshToken={refreshToken}
+          onChanged={() => setRefreshToken((n) => n + 1)}
         />
       </section>
     </div>
   );
 }
+
+const sectionHeadingStyle = {
+  fontSize: "15px",
+  margin: "0 0 10px",
+  opacity: 0.75,
+} as const;

@@ -10,6 +10,9 @@ importers:
 
   apps/issuer:
     dependencies:
+      '@alis-build/google-common-protos':
+        specifier: ^1.7.0
+        version: 1.7.0
       '@attestant/auth':
         specifier: workspace:*
         version: link:../../packages/auth
@@ -19,6 +22,12 @@ importers:
       '@internal.ti.alis.build/protobuf':
         specifier: file:../../vendor/internal.ti.alis.build-protobuf-1.0.13.tgz
         version: file:vendor/internal.ti.alis.build-protobuf-1.0.13.tgz
+      '@noble/curves':
+        specifier: ^2.2.0
+        version: 2.2.0
+      '@noble/hashes':
+        specifier: ^2.2.0
+        version: 2.2.0
       google-protobuf:
         specifier: ^4.0.2
         version: 4.0.2
@@ -53,9 +62,15 @@ importers:
 
   apps/positions:
     dependencies:
+      '@alis-build/google-common-protos':
+        specifier: ^1.7.0
+        version: 1.7.0
       '@attestant/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@attestant/filter-spec':
+        specifier: workspace:*
+        version: link:../../packages/filter-spec
       '@attestant/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -103,8 +118,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/ui
       '@internal.ti.alis.build/protobuf':
-        specifier: file:../../vendor/internal.ti.alis.build-protobuf-1.0.13.tgz
-        version: file:vendor/internal.ti.alis.build-protobuf-1.0.13.tgz
+        specifier: file:../../vendor/internal.ti.alis.build-protobuf-1.0.14.tgz
+        version: file:vendor/internal.ti.alis.build-protobuf-1.0.14.tgz
       google-protobuf:
         specifier: ^4.0.2
         version: 4.0.2
@@ -149,6 +164,12 @@ importers:
       next:
         specifier: 16.2.11
         version: 16.2.11(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
+
+  packages/filter-spec:
+    devDependencies:
       typescript:
         specifier: ^5.8.0
         version: 5.9.3
@@ -401,6 +422,14 @@ packages:
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [win32]
+
+  '@noble/curves@2.2.0':
+    resolution: {integrity: sha512-T/BoHgFXirb0ENSPBquzX0rcjXeM6Lo892a2jlYJkqk83LqZx0l1Of7DzlKJ6jkpvMrkHSnAcgb5JegL8SeIkQ==}
+    engines: {node: '>= 20.19.0'}
+
+  '@noble/hashes@2.2.0':
+    resolution: {integrity: sha512-IYqDGiTXab6FniAgnSdZwgWbomxpy9FtYvLKs7wCUs2a8RkITG+DFGO1DM9cr+E3/RgADRpFjrKVaJ1z6sjtEg==}
+    engines: {node: '>= 20.19.0'}
 
   '@open.alis.services/protobuf@1.200.13':
     resolution: {integrity: sha512-7dEfXezyli6uZ9pyKEvPgornHeNeeUt43effSGOukwqyqceQQC5A3JWOTZ4KAOhHbsjddTUyB61kdM66b2eezg==, tarball: https://europe-west1-npm.pkg.dev/alis-org-777777/openprotos-javascript/@open.alis.services/protobuf/-/@open.alis.services/protobuf-1.200.13.tgz}
@@ -880,6 +909,12 @@ snapshots:
 
   '@next/swc-win32-x64-msvc@16.2.11':
     optional: true
+
+  '@noble/curves@2.2.0':
+    dependencies:
+      '@noble/hashes': 2.2.0
+
+  '@noble/hashes@2.2.0': {}
 
   '@open.alis.services/protobuf@1.200.13':
     dependencies:

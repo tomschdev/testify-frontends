@@ -11,7 +11,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@alis-build/google-common-protos": "^1.7.0",
     "@attestant/auth": "workspace:*",
+    "@attestant/filter-spec": "workspace:*",
     "@attestant/ui": "workspace:*",
     "@internal.ti.alis.build/protobuf": "file:../../vendor/internal.ti.alis.build-protobuf-1.0.14.tgz",
     "google-protobuf": "^4.0.2",
