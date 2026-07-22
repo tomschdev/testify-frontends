@@ -3,7 +3,6 @@
 import { useState } from "react";
 
 import { Organisation } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/organisation_pb";
-import { PositionsServicePromiseClient } from "@internal.ti.alis.build/protobuf/interface/ti/positions/v1/positions_grpc_web_pb";
 import {
   CreatePositionRequest,
   Filter,
@@ -11,40 +10,29 @@ import {
   Requirements,
 } from "@internal.ti.alis.build/protobuf/interface/ti/positions/v1/positions_pb";
 
-// Same pattern as the alis console apps: grpc-web PromiseClient pointed at the
-// site's own origin; the session token stays server-side (httpOnly cookie) and
-// is attached by the /api/grpc proxy route.
-const positionsClient = new PositionsServicePromiseClient("/api/grpc");
+import {
+  draftCriteria,
+  draftIsValid,
+  draftsHaveDuplicates,
+  FilterBuilder,
+  newDraftFilter,
+  type DraftFilter,
+} from "@/components/FilterBuilder";
+import { positionsClient } from "@/lib/clients";
+import { errorMessage } from "@/lib/grpcError";
+import { composeDescription } from "@/lib/location";
 
-/**
- * The POC predicate is fixed: holds an XP Credential AND a Reputation
- * Credential issued by this organisation. MirrorService.SearchProfiles
- * enforces exactly that regardless of the filter text, so these filters exist
- * for display and audit — there is deliberately no filter-authoring UI
- * (console spec §4.3).
- */
-function pocRequirementCriteria(orgName: string): readonly string[] {
-  return [
-    `Holds an XP Credential issued by ${orgName}`,
-    `Holds a Reputation Credential issued by ${orgName}`,
-  ];
-}
-
-function buildRequirements(orgName: string): Requirements {
+export function buildRequirements(drafts: readonly DraftFilter[]): Requirements {
   const requirements = new Requirements();
   requirements.setFiltersList(
-    pocRequirementCriteria(orgName).map((criteria) => {
+    drafts.map((draft) => {
       const filter = new Filter();
-      filter.setNaturalLanguageCriteria(criteria);
-      filter.setActive(true);
+      filter.setNaturalLanguageCriteria(draftCriteria(draft));
+      filter.setActive(draft.active);
       return filter;
     }),
   );
   return requirements;
-}
-
-function errorMessage(err: unknown): string {
-  return err instanceof Error ? err.message : String(err);
 }
 
 interface CreatePositionProps {
@@ -60,7 +48,11 @@ export function CreatePosition({
 }: CreatePositionProps): React.ReactNode {
   const [orgName, setOrgName] = useState(organisations[0]?.name ?? "");
   const [title, setTitle] = useState("");
+  const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
+  const [drafts, setDrafts] = useState<DraftFilter[]>(() =>
+    orgName === "" ? [] : [newDraftFilter(orgName)],
+  );
   const [posting, setPosting] = useState(false);
   const [postError, setPostError] = useState<string | null>(null);
 
@@ -70,8 +62,11 @@ export function CreatePosition({
 
     const position = new Position();
     position.setTitle(title.trim());
-    position.setDescription(description.trim());
-    position.setRequirements(buildRequirements(orgName));
+    // Position has no location field (positions.proto) — location travels
+    // inside description under a "Location:" label; see lib/location.ts,
+    // where a first-class field is flagged as a backend request.
+    position.setDescription(composeDescription(location, description));
+    position.setRequirements(buildRequirements(drafts));
 
     const req = new CreatePositionRequest();
     req.setParent(orgName);
@@ -82,7 +77,9 @@ export function CreatePosition({
     try {
       await positionsClient.createPosition(req, {});
       setTitle("");
+      setLocation("");
       setDescription("");
+      setDrafts([newDraftFilter(orgName)]);
       onCreated();
     } catch (err: unknown) {
       setPostError(errorMessage(err));
@@ -105,10 +102,14 @@ export function CreatePosition({
   }
 
   const selectedOrg = organisations.find((org) => org.name === orgName);
-  const canPost = !posting && orgName !== "" && title.trim() !== "";
+  const filtersValid =
+    drafts.length > 0 && // at least one filter, authored at creation time
+    drafts.every(draftIsValid) &&
+    !draftsHaveDuplicates(drafts);
+  const canPost = !posting && orgName !== "" && title.trim() !== "" && filtersValid;
 
   return (
-    <div style={{ display: "grid", gap: "8px", maxWidth: "480px" }}>
+    <div style={{ display: "grid", gap: "8px", maxWidth: "560px" }}>
       <label style={{ fontSize: "13px", opacity: 0.75 }}>
         Posting as
         <select
@@ -136,28 +137,34 @@ export function CreatePosition({
         style={inputStyle}
       />
       <input
+        value={location}
+        onChange={(e) => setLocation(e.target.value)}
+        placeholder="Location, e.g. Zurich (stored in the description — Position has no location field)"
+        style={inputStyle}
+      />
+      <input
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         placeholder="Description"
         style={inputStyle}
       />
-      <div
-        style={{
-          border: "1px solid rgba(252, 165, 165, 0.25)",
-          borderRadius: "8px",
-          padding: "10px 12px",
-          fontSize: "13px",
-        }}
-      >
-        <div style={{ opacity: 0.75, marginBottom: "6px" }}>
-          Candidates qualify when they hold both:
-        </div>
-        <ul style={{ margin: 0, paddingLeft: "18px", opacity: 0.85 }}>
-          {pocRequirementCriteria(orgName).map((criteria) => (
-            <li key={criteria}>{criteria}</li>
-          ))}
-        </ul>
+
+      <div style={{ fontSize: "13px", opacity: 0.75, marginTop: "4px" }}>
+        Requirement filters — candidates must satisfy <em>all</em> active
+        filters (AND); at least one is required.
       </div>
+      <FilterBuilder
+        drafts={drafts}
+        onChange={setDrafts}
+        organisations={organisations}
+        defaultIssuer={orgName}
+      />
+      {drafts.length === 0 && (
+        <p style={{ color: "#fcd34d", fontSize: "12px", margin: 0 }}>
+          Add at least one filter to post this position.
+        </p>
+      )}
+
       <button
         type="button"
         onClick={() => void post()}

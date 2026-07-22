@@ -11,9 +11,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@alis-build/google-common-protos": "^1.7.0",
     "@attestant/auth": "workspace:*",
     "@attestant/ui": "workspace:*",
     "@internal.ti.alis.build/protobuf": "file:../../vendor/internal.ti.alis.build-protobuf-1.0.13.tgz",
+    "@noble/curves": "^2.2.0",
+    "@noble/hashes": "^2.2.0",
     "google-protobuf": "^4.0.2",
     "grpc-web": "^2.0.2",
     "next": "16.2.11",
