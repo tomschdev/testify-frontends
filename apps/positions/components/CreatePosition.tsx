@@ -1,12 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-import { OrganisationsServicePromiseClient } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/organisation_grpc_web_pb";
-import {
-  ListMyOrganisationsRequest,
-  Organisation,
-} from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/organisation_pb";
+import { Organisation } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/organisation_pb";
 import { PositionsServicePromiseClient } from "@internal.ti.alis.build/protobuf/interface/ti/positions/v1/positions_grpc_web_pb";
 import {
   CreatePositionRequest,
@@ -15,13 +11,10 @@ import {
   Requirements,
 } from "@internal.ti.alis.build/protobuf/interface/ti/positions/v1/positions_pb";
 
-// Same pattern as the alis console apps: grpc-web PromiseClients pointed at the
+// Same pattern as the alis console apps: grpc-web PromiseClient pointed at the
 // site's own origin; the session token stays server-side (httpOnly cookie) and
 // is attached by the /api/grpc proxy route.
-const orgsClient = new OrganisationsServicePromiseClient("/api/grpc");
 const positionsClient = new PositionsServicePromiseClient("/api/grpc");
-
-const PAGE_SIZE = 50;
 
 /**
  * The POC predicate is fixed: holds an XP Credential AND a Reputation
@@ -50,57 +43,26 @@ function buildRequirements(orgName: string): Requirements {
   return requirements;
 }
 
-/**
- * The proxy answers status 16 with this message when the session cookie is
- * missing or unusable, and clears the cookie on that same response — so a
- * reload lands on the signed-out page.
- */
-function isSessionError(message: string): boolean {
-  return message.includes("no session");
-}
-
 function errorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
 
-type OrgsState =
-  | { phase: "loading" }
-  | { phase: "error"; message: string }
-  | { phase: "ready"; organisations: Organisation.AsObject[] };
-
 interface CreatePositionProps {
+  /** The signed-in user's organisations — posting targets. */
+  organisations: Organisation.AsObject[];
   /** Called after a position is successfully created, so the list can reload. */
   onCreated: () => void;
 }
 
-export function CreatePosition({ onCreated }: CreatePositionProps): React.ReactNode {
-  const [orgs, setOrgs] = useState<OrgsState>({ phase: "loading" });
-  const [orgName, setOrgName] = useState("");
+export function CreatePosition({
+  organisations,
+  onCreated,
+}: CreatePositionProps): React.ReactNode {
+  const [orgName, setOrgName] = useState(organisations[0]?.name ?? "");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [posting, setPosting] = useState(false);
   const [postError, setPostError] = useState<string | null>(null);
-
-  // ListMyOrganisations scopes to the caller's memberships, so it needs no
-  // parent — the identity comes from x-alis-forwarded-authorization. The
-  // selected organisation becomes the position's parent (§2.3: both org
-  // consoles resolve the org by asking the backend, nothing is shared).
-  useEffect(() => {
-    const req = new ListMyOrganisationsRequest();
-    req.setPageSize(PAGE_SIZE);
-    orgsClient
-      .listMyOrganisations(req, {})
-      .then((res) => {
-        const organisations = res.toObject().organisationsList;
-        setOrgs({ phase: "ready", organisations });
-        if (organisations.length > 0) {
-          setOrgName(organisations[0].name);
-        }
-      })
-      .catch((err: unknown) => {
-        setOrgs({ phase: "error", message: errorMessage(err) });
-      });
-  }, []);
 
   async function post(): Promise<void> {
     setPosting(true);
@@ -129,28 +91,7 @@ export function CreatePosition({ onCreated }: CreatePositionProps): React.ReactN
     }
   }
 
-  if (orgs.phase === "loading") {
-    return <p style={{ opacity: 0.7 }}>Loading your organisations…</p>;
-  }
-  if (orgs.phase === "error") {
-    if (isSessionError(orgs.message)) {
-      return (
-        <p style={{ color: "#fca5a5" }}>
-          Your session is not valid for this app.{" "}
-          <a href="/auth/signin" style={{ color: "inherit" }}>
-            Sign in again
-          </a>
-          .
-        </p>
-      );
-    }
-    return (
-      <p style={{ color: "#fca5a5" }}>
-        Could not fetch your organisations from the users service: {orgs.message}
-      </p>
-    );
-  }
-  if (orgs.organisations.length === 0) {
+  if (organisations.length === 0) {
     return (
       <p style={{ opacity: 0.7 }}>
         Posting a position requires an organisation, and you are not a member of
@@ -163,6 +104,7 @@ export function CreatePosition({ onCreated }: CreatePositionProps): React.ReactN
     );
   }
 
+  const selectedOrg = organisations.find((org) => org.name === orgName);
   const canPost = !posting && orgName !== "" && title.trim() !== "";
 
   return (
@@ -174,13 +116,19 @@ export function CreatePosition({ onCreated }: CreatePositionProps): React.ReactN
           onChange={(e) => setOrgName(e.target.value)}
           style={{ ...inputStyle, display: "block", width: "100%", marginTop: "4px" }}
         >
-          {orgs.organisations.map((org) => (
+          {organisations.map((org) => (
             <option key={org.name} value={org.name}>
               {org.displayName}
             </option>
           ))}
         </select>
       </label>
+      {selectedOrg && (
+        <div style={{ fontSize: "12px", fontFamily: "monospace", opacity: 0.55 }}>
+          Hedera account {selectedOrg.hederaAccountAddress || "—"} · issuer key{" "}
+          {selectedOrg.issuerPublicKey || "—"}
+        </div>
+      )}
       <input
         value={title}
         onChange={(e) => setTitle(e.target.value)}
