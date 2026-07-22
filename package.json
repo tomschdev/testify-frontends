@@ -1,0 +1,15 @@
+{
+  "name": "attestant-frontends",
+  "private": true,
+  "packageManager": "pnpm@11.3.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev:profile": "pnpm --filter @attestant/profile dev",
+    "dev:issuer": "pnpm --filter @attestant/issuer dev",
+    "dev:positions": "pnpm --filter @attestant/positions dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint"
+  }
+}
