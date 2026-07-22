@@ -5,6 +5,7 @@ import { useState } from "react";
 import * as fieldMaskPb from "google-protobuf/google/protobuf/field_mask_pb";
 
 import { parseFilterCriteria } from "@attestant/filter-spec";
+import { HederaRef, OnChainPanel } from "@attestant/ui";
 import { Organisation } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/organisation_pb";
 import {
   Filter,
@@ -257,21 +258,18 @@ export function PositionCard({
         <Field label="Updated" value={formatTime(position.updateTime)} />
       </dl>
 
-      <div
-        style={{
-          borderTop: "1px solid rgba(252, 165, 165, 0.15)",
-          paddingTop: "8px",
-          fontSize: "12px",
-        }}
-      >
-        <div style={{ opacity: 0.6, marginBottom: "2px" }}>On-chain</div>
+      <OnChainPanel borderColor="rgba(252, 165, 165, 0.15)">
         {org ? (
-          <div style={{ fontFamily: "monospace", opacity: 0.75 }}>
-            <div>Issuer Hedera account: {org.hederaAccountAddress || "—"}</div>
-            <div style={{ overflowWrap: "anywhere" }}>
-              Issuer public key: {org.issuerPublicKey || "—"}
-            </div>
-          </div>
+          <>
+            <HederaRef
+              kind="account"
+              label="Issuer Hedera account"
+              value={org.hederaAccountAddress}
+            />
+            {/* Public key only — the org's private_key never leaves the
+                server, so it is not in this component's props at all. */}
+            <HederaRef kind="key" label="Issuer public key" value={org.issuerPublicKey} />
+          </>
         ) : (
           <div style={{ opacity: 0.55 }}>
             Posted by an organisation outside your memberships — issuer key not
@@ -282,17 +280,26 @@ export function PositionCard({
             topic; hcs_record back-links the row to its latest event. Absent
             only on positions created before the HCS wiring landed. */}
         {position.hcsRecord ? (
-          <div style={{ fontFamily: "monospace", opacity: 0.75, marginTop: "4px" }}>
-            <div>HCS position topic: {position.hcsRecord.topicId}</div>
-            <div>Latest event sequence: {position.hcsRecord.latestSequenceNumber}</div>
-          </div>
+          <>
+            <HederaRef
+              kind="topic"
+              label="HCS position topic"
+              value={position.hcsRecord.topicId}
+            />
+            <HederaRef
+              kind="topic-message"
+              label="Latest event"
+              value={position.hcsRecord.topicId}
+              sequenceNumber={position.hcsRecord.latestSequenceNumber}
+            />
+          </>
         ) : (
-          <div style={{ opacity: 0.5, marginTop: "4px" }}>
+          <div style={{ opacity: 0.5 }}>
             Not anchored to HCS — this position predates position events being
             published to the consensus topic.
           </div>
         )}
-      </div>
+      </OnChainPanel>
 
       <div>
         <button
