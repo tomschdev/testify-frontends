@@ -15,7 +15,7 @@
     "@attestant/auth": "workspace:*",
     "@attestant/filter-spec": "workspace:*",
     "@attestant/ui": "workspace:*",
-    "@internal.ti.alis.build/protobuf": "file:../../vendor/internal.ti.alis.build-protobuf-1.0.14.tgz",
+    "@internal.ti.alis.build/protobuf": "file:../../vendor/internal.ti.alis.build-protobuf-1.0.16.tgz",
     "google-protobuf": "^4.0.2",
     "grpc-web": "^2.0.2",
     "next": "16.2.11",
