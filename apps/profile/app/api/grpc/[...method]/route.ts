@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { USERS_GRPC_HOST } from "@/lib/config";
+import { POSITIONS_SERVICE, PROFILES_SERVICE, USERS_SERVICE } from "@/lib/config";
 import { forwardUnary, statusOnlyBody } from "@/lib/grpcProxy";
 import { getValidAccessToken } from "@/lib/session";
 
@@ -8,13 +8,13 @@ export const dynamic = "force-dynamic";
 
 const GRPC_WEB_TEXT = "application/grpc-web-text";
 
-/** Only these services may be reached through this site's proxy. */
-const ALLOWED_SERVICES = new Set([
-  "interface.ti.users.v1.UsersService",
-  "interface.ti.users.v1.OrganisationsService",
-  "interface.ti.positions.v1.PositionsService",
-  "interface.ti.profiles.v1.ProfilesService",
-]);
+/** Reachable services and the backend host each one lives on. */
+const SERVICE_HOSTS: Record<string, string> = {
+  "interface.ti.users.v1.UsersService": USERS_SERVICE,
+  "interface.ti.users.v1.OrganisationsService": USERS_SERVICE,
+  "interface.ti.positions.v1.PositionsService": POSITIONS_SERVICE,
+  "interface.ti.profiles.v1.MirrorService": PROFILES_SERVICE,
+};
 
 function grpcWebResponse(bodyBase64: string, httpStatus = 200): NextResponse {
   return new NextResponse(bodyBase64, {
@@ -37,7 +37,8 @@ export async function POST(
   { params }: { params: Promise<{ method: string[] }> },
 ): Promise<NextResponse> {
   const segments = (await params).method;
-  if (segments.length !== 2 || !ALLOWED_SERVICES.has(segments[0])) {
+  const host = segments.length === 2 ? SERVICE_HOSTS[segments[0]] : undefined;
+  if (!host) {
     return grpcWebResponse(statusOnlyBody(12, `unknown method ${segments.join("/")}`));
   }
   const [service, method] = segments;
@@ -54,7 +55,7 @@ export async function POST(
     : raw;
 
   try {
-    const result = await forwardUnary(USERS_GRPC_HOST, `/${service}/${method}`, frames, {
+    const result = await forwardUnary(host, `/${service}/${method}`, frames, {
       authorization: `Bearer ${token}`,
       "x-alis-forwarded-authorization": token,
     });

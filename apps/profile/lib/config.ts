@@ -1,14 +1,21 @@
 /**
- * Identity + backend host configuration.
+ * Backend service hosts (Cloud Run). Overridable per environment via the
+ * <NAME>_SERVICE env vars; defaults point at the deployed dev instances.
  *
- * AUTH_HOST doubles as the gRPC host for the users domain: the users-v1
- * service serves its OAuth endpoints (/authorize, /token) and its native
- * gRPC API on the same origin. Env vars override the defaults per spec §2.6.
+ * The users service doubles as the identity provider: it serves the OAuth
+ * endpoints (/authorize, /signup, /token) and its native gRPC API on the
+ * same origin.
  */
-export const AUTH_HOST =
-  process.env.AUTH_HOST ?? "https://users-v1-75542456563.europe-west1.run.app";
+export const USERS_SERVICE =
+  process.env.USERS_SERVICE ?? "https://users-v1-75542456563.europe-west1.run.app";
+export const POSITIONS_SERVICE =
+  process.env.POSITIONS_SERVICE ?? "https://positions-v1-75542456563.europe-west1.run.app";
+export const PROFILES_SERVICE =
+  process.env.PROFILES_SERVICE ?? "https://profiles-v1-75542456563.europe-west1.run.app";
+export const ISSUE_SERVICE =
+  process.env.ISSUE_SERVICE ?? "https://issue-v1-75542456563.europe-west1.run.app";
 
-export const USERS_GRPC_HOST = process.env.USERS_GRPC_HOST ?? AUTH_HOST;
+export const AUTH_HOST = process.env.AUTH_HOST ?? USERS_SERVICE;
 
 export const ACCESS_TOKEN_COOKIE = "access_token";
 export const REFRESH_TOKEN_COOKIE = "refresh_token";
