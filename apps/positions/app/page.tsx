@@ -39,7 +39,7 @@ export default async function Home() {
   return (
     <Dashboard
       site="positions"
-      name="Positions Console"
+      name="Welcome to the Job Market: Filter Talent, Fill Positions"
       audience="For organisations"
       purpose="Create positions as chained credential filters, so candidates can be matched on the credentials they hold."
       actions={

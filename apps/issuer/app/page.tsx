@@ -39,7 +39,7 @@ export default async function Home() {
   return (
     <Dashboard
       site="issuer"
-      name="Issuer Console"
+      name="Issue Verifiable Credentials to Profiles"
       audience="For organisations"
       purpose="Create your organisation and issue XP and reputation credentials to candidates."
       actions={

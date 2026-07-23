@@ -4,8 +4,9 @@ import { BottomNav, MobileShell, tokens, type BottomNavItem } from "@attestant/u
 
 /**
  * The Profile console is a phone-shaped app: a title bar, one scrolling panel,
- * and a fixed bottom tab bar (Home / Credentials / Jobs / Wallet). Each menu is
- * its own route; the bottom bar switches between them and marks the active one.
+ * and a fixed bottom tab bar (Home / Jobs / Wallet). Each menu is its own
+ * route; the bottom bar switches between them and marks the active one. Home
+ * carries both the account record and the credentials the user holds.
  */
 
 const iconProps = {
@@ -26,13 +27,6 @@ const HomeIcon = (
   </svg>
 );
 
-const CredentialsIcon = (
-  <svg {...iconProps} aria-hidden="true">
-    <circle cx="12" cy="9" r="5" />
-    <path d="M9 13.5 8 21l4-2 4 2-1-7.5" />
-  </svg>
-);
-
 const JobsIcon = (
   <svg {...iconProps} aria-hidden="true">
     <rect x="3" y="7" width="18" height="13" rx="1.5" />
@@ -50,7 +44,6 @@ const WalletIcon = (
 
 const NAV_ITEMS: BottomNavItem[] = [
   { href: "/", label: "Home", icon: HomeIcon },
-  { href: "/credentials", label: "Credentials", icon: CredentialsIcon },
   { href: "/jobs", label: "Jobs", icon: JobsIcon },
   { href: "/wallet", label: "Wallet", icon: WalletIcon },
 ];
