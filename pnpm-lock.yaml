@@ -20,8 +20,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/ui
       '@internal.ti.alis.build/protobuf':
-        specifier: file:../../vendor/internal.ti.alis.build-protobuf-1.0.16.tgz
-        version: file:vendor/internal.ti.alis.build-protobuf-1.0.16.tgz
+        specifier: file:../../vendor/internal.ti.alis.build-protobuf-1.0.19.tgz
+        version: file:vendor/internal.ti.alis.build-protobuf-1.0.19.tgz
       '@noble/curves':
         specifier: ^2.2.0
         version: 2.2.0
@@ -75,8 +75,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/ui
       '@internal.ti.alis.build/protobuf':
-        specifier: file:../../vendor/internal.ti.alis.build-protobuf-1.0.16.tgz
-        version: file:vendor/internal.ti.alis.build-protobuf-1.0.16.tgz
+        specifier: file:../../vendor/internal.ti.alis.build-protobuf-1.0.19.tgz
+        version: file:vendor/internal.ti.alis.build-protobuf-1.0.19.tgz
       google-protobuf:
         specifier: ^4.0.2
         version: 4.0.2
@@ -114,12 +114,15 @@ importers:
       '@attestant/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@attestant/filter-spec':
+        specifier: workspace:*
+        version: link:../../packages/filter-spec
       '@attestant/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@internal.ti.alis.build/protobuf':
-        specifier: file:../../vendor/internal.ti.alis.build-protobuf-1.0.16.tgz
-        version: file:vendor/internal.ti.alis.build-protobuf-1.0.16.tgz
+        specifier: file:../../vendor/internal.ti.alis.build-protobuf-1.0.19.tgz
+        version: file:vendor/internal.ti.alis.build-protobuf-1.0.19.tgz
       google-protobuf:
         specifier: ^4.0.2
         version: 4.0.2
@@ -169,6 +172,10 @@ importers:
         version: 5.9.3
 
   packages/filter-spec:
+    dependencies:
+      '@internal.ti.alis.build/protobuf':
+        specifier: file:../../vendor/internal.ti.alis.build-protobuf-1.0.19.tgz
+        version: file:vendor/internal.ti.alis.build-protobuf-1.0.19.tgz
     devDependencies:
       typescript:
         specifier: ^5.8.0
@@ -363,9 +370,9 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@internal.ti.alis.build/protobuf@file:vendor/internal.ti.alis.build-protobuf-1.0.16.tgz':
-    resolution: {integrity: sha512-ZvldJPd70RBAMIkG38Z9T9VDwQHDchae3wgPl2ioXUj70/1u4FIKQYVsKJOCZyZNGUENfThtpJF7D7v4vi3Clw==, tarball: file:vendor/internal.ti.alis.build-protobuf-1.0.16.tgz}
-    version: 1.0.16
+  '@internal.ti.alis.build/protobuf@file:vendor/internal.ti.alis.build-protobuf-1.0.19.tgz':
+    resolution: {integrity: sha512-icymUuJENGFPzNoYGEs22dM4kneN0caDGKYz6YjBIgRQGP3r/N28k9Nosd7j8u6CbcN682HSIYA7Gq7qWjNPRQ==, tarball: file:vendor/internal.ti.alis.build-protobuf-1.0.19.tgz}
+    version: 1.0.19
 
   '@js-sdsl/ordered-map@4.4.2':
     resolution: {integrity: sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==}
@@ -868,7 +875,7 @@ snapshots:
   '@img/sharp-win32-x64@0.34.5':
     optional: true
 
-  '@internal.ti.alis.build/protobuf@file:vendor/internal.ti.alis.build-protobuf-1.0.16.tgz':
+  '@internal.ti.alis.build/protobuf@file:vendor/internal.ti.alis.build-protobuf-1.0.19.tgz':
     dependencies:
       '@alis-build/google-common-protos': 1.7.0
       '@grpc/grpc-js': 1.14.4

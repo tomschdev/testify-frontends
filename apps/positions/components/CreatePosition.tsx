@@ -3,18 +3,18 @@
 import { useState } from "react";
 
 import { HederaInfo, HederaRef, tokens } from "@attestant/ui";
+import { requirementsFromFilters } from "@attestant/filter-spec";
 import { Organisation } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/organisation_pb";
 import {
   CreatePositionRequest,
-  Filter,
   Position,
   Requirements,
 } from "@internal.ti.alis.build/protobuf/interface/ti/positions/v1/positions_pb";
 
 import {
-  draftCriteria,
   draftIsValid,
   draftsHaveDuplicates,
+  draftToProto,
   FilterBuilder,
   newDraftFilter,
   type DraftFilter,
@@ -24,16 +24,7 @@ import { errorMessage } from "@/lib/grpcError";
 import { composeDescription } from "@/lib/location";
 
 export function buildRequirements(drafts: readonly DraftFilter[]): Requirements {
-  const requirements = new Requirements();
-  requirements.setFiltersList(
-    drafts.map((draft) => {
-      const filter = new Filter();
-      filter.setNaturalLanguageCriteria(draftCriteria(draft));
-      filter.setActive(draft.active);
-      return filter;
-    }),
-  );
-  return requirements;
+  return requirementsFromFilters(drafts.map(draftToProto));
 }
 
 interface CreatePositionProps {
@@ -51,8 +42,12 @@ export function CreatePosition({
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
+  // Filters name issuers by Hedera account id, so the posting org's default
+  // issuer is its account address — not its resource name.
+  const defaultIssuer =
+    organisations.find((org) => org.name === orgName)?.hederaAccountAddress ?? "";
   const [drafts, setDrafts] = useState<DraftFilter[]>(() =>
-    orgName === "" ? [] : [newDraftFilter(orgName)],
+    defaultIssuer === "" ? [] : [newDraftFilter(defaultIssuer)],
   );
   const [posting, setPosting] = useState(false);
   const [postError, setPostError] = useState<string | null>(null);
@@ -80,7 +75,7 @@ export function CreatePosition({
       setTitle("");
       setLocation("");
       setDescription("");
-      setDrafts([newDraftFilter(orgName)]);
+      setDrafts([newDraftFilter(defaultIssuer)]);
       onCreated();
     } catch (err: unknown) {
       setPostError(errorMessage(err));
@@ -167,7 +162,7 @@ export function CreatePosition({
         drafts={drafts}
         onChange={setDrafts}
         organisations={organisations}
-        defaultIssuer={orgName}
+        defaultIssuer={defaultIssuer}
       />
       {drafts.length === 0 && (
         <p style={{ color: tokens.color.warning, fontSize: "12px", margin: 0 }}>

@@ -11,6 +11,9 @@
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@internal.ti.alis.build/protobuf": "file:../../vendor/internal.ti.alis.build-protobuf-1.0.19.tgz"
+  },
   "devDependencies": {
     "typescript": "^5.8.0"
   }
