@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { HederaRef, tokens } from "@attestant/ui";
+import { HederaInfo, HederaRef, tokens } from "@attestant/ui";
 import { Organisation } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/organisation_pb";
 import {
   CreatePositionRequest,
@@ -127,18 +127,18 @@ export function CreatePosition({
           ))}
         </select>
       </label>
-      {/* HederaRef rather than a raw monospace line: an issuer key is one
-          unbreakable token, and Panel clips (overflow: hidden) rather than
-          scrolls, so an un-elided key silently cropped the whole form. */}
+      {/* Complementary: which on-chain identity the post will be signed with.
+          Nothing here is acted on while filling the form, so it sits behind
+          the ⓘ rather than pushing the fields down. */}
       {selectedOrg && (
-        <div style={{ display: "grid", gap: "4px", minWidth: 0 }}>
+        <HederaInfo title="Posting identity">
           <HederaRef
             kind="account"
             label="Hedera account"
             value={selectedOrg.hederaAccountAddress}
           />
           <HederaRef kind="key" label="Issuer key" value={selectedOrg.issuerPublicKey} />
-        </div>
+        </HederaInfo>
       )}
       <input
         value={title}

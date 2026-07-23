@@ -49,6 +49,8 @@ export {
   type BoundedPollStatus,
 } from "./useBoundedPoll";
 export { HederaRef, type HederaRefProps } from "./HederaRef";
+export { HederaInfo, type HederaInfoProps } from "./HederaInfo";
+export { InfoTooltip, type InfoTooltipProps } from "./InfoTooltip";
 export { OnChainPanel, type OnChainPanelProps } from "./OnChainPanel";
 export {
   DEFAULT_HEDERA_NETWORK,

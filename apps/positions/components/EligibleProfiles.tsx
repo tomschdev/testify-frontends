@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { tokens } from "@attestant/ui";
+import { HederaRef, tokens } from "@attestant/ui";
 import { SearchProfilesRequest, SearchProfilesResponse } from "@internal.ti.alis.build/protobuf/interface/ti/profiles/v1/mirror_pb";
 
 import { mirrorClient } from "@/lib/clients";
@@ -106,9 +106,15 @@ export function EligibleProfiles({
                 gap: "10px",
               }}
             >
-              <div style={{ fontFamily: "monospace", fontSize: "12px", opacity: 0.85 }}>
+              {/* The candidate's account address stays inline: it is the only
+                  handle on this person, and it is there to be copied. */}
+              <div style={{ fontFamily: "monospace", fontSize: "12px", opacity: 0.85, minWidth: 0 }}>
                 <div>{profile.user || "unknown user"}</div>
-                <div style={{ opacity: 0.7 }}>{profile.hederaAccountAddress || "—"}</div>
+                <HederaRef
+                  kind="account"
+                  label={null}
+                  value={profile.hederaAccountAddress}
+                />
               </div>
               {/* Dummy by design (feature-list §2.5): renders, clickable,
                   does nothing. No invite/notification flow in this POC. */}

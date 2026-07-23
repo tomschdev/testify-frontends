@@ -5,7 +5,7 @@ import { useState } from "react";
 import * as fieldMaskPb from "google-protobuf/google/protobuf/field_mask_pb";
 
 import { parseFilterCriteria } from "@attestant/filter-spec";
-import { HederaRef, OnChainPanel, siteThemes, tokens } from "@attestant/ui";
+import { HederaInfo, HederaRef, siteThemes, tokens } from "@attestant/ui";
 import { Organisation } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/organisation_pb";
 import {
   Filter,
@@ -269,7 +269,9 @@ export function PositionCard({
         <Field label="Updated" value={formatTime(position.updateTime)} />
       </dl>
 
-      <OnChainPanel borderColor={siteThemes.positions.accent}>
+      {/* Provenance for the position, not something acted on from the card —
+          the whole block collapses to one ⓘ. */}
+      <HederaInfo title="On-chain">
         {org ? (
           <>
             <HederaRef
@@ -310,7 +312,7 @@ export function PositionCard({
             published to the consensus topic.
           </div>
         )}
-      </OnChainPanel>
+      </HederaInfo>
 
       <div>
         <button

@@ -12,6 +12,8 @@ import {
   Button,
   Card,
   EmptyState,
+  HederaInfo,
+  HederaRef,
   Input,
   SectionHeader,
   siteThemes,
@@ -103,17 +105,18 @@ export function Organisations({
                     <div style={{ opacity: 0.7, fontSize: "14px" }}>{org.description}</div>
                   )}
                   {org.hederaAccountAddress && (
-                    <div
-                      style={{
-                        fontSize: "12px",
-                        fontFamily: tokens.font.mono,
-                        opacity: 0.55,
-                        overflowWrap: "anywhere",
-                      }}
-                    >
-                      Hedera account {org.hederaAccountAddress} · issuer key{" "}
-                      {org.issuerPublicKey || "—"}
-                    </div>
+                    <HederaInfo title="On-chain identity">
+                      <HederaRef
+                        kind="account"
+                        label="Hedera account"
+                        value={org.hederaAccountAddress}
+                      />
+                      <HederaRef
+                        kind="key"
+                        label="Issuer key"
+                        value={org.issuerPublicKey}
+                      />
+                    </HederaInfo>
                   )}
                   <div
                     style={{ opacity: 0.5, fontSize: "12px", fontFamily: tokens.font.mono }}

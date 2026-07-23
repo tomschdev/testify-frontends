@@ -5,7 +5,7 @@ import { useState } from "react";
 import { MirrorServicePromiseClient } from "@internal.ti.alis.build/protobuf/interface/ti/profiles/v1/mirror_grpc_web_pb";
 import { GetHederaAccountRequest } from "@internal.ti.alis.build/protobuf/interface/ti/profiles/v1/mirror_pb";
 import { Organisation } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/organisation_pb";
-import { Button, Input, Select, tokens } from "@attestant/ui";
+import { Button, HederaInfo, HederaRef, Input, Select, tokens } from "@attestant/ui";
 
 import type { IssuedEntry } from "@/components/RecentlyIssued";
 
@@ -173,9 +173,13 @@ export function IssueCredentialForm({
         </Select>
       </label>
       {selectedOrg && (
-        <div style={{ fontSize: "12px", fontFamily: tokens.font.mono, opacity: 0.55 }}>
-          Signing as Hedera account {selectedOrg.hederaAccountAddress}
-        </div>
+        <HederaInfo title="Signing identity" label="Signing as">
+          <HederaRef
+            kind="account"
+            label="Hedera account"
+            value={selectedOrg.hederaAccountAddress}
+          />
+        </HederaInfo>
       )}
 
       <Input

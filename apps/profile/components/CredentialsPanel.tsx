@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { Credential, ListCredentialsRequest, GetTokenRequest, ListTokenHoldingsRequest } from "@internal.ti.alis.build/protobuf/interface/ti/profiles/v1/mirror_pb";
 
-import { siteThemes, tokens } from "@attestant/ui";
+import { HederaRef, siteThemes, tokens } from "@attestant/ui";
 
 import { Badge, EmptyState, ErrorState, SectionHeader, buttonStyle } from "@/components/primitives";
 import { errorMessage, isSessionError, mirrorClient } from "@/lib/clients";
@@ -199,9 +199,9 @@ export function CredentialsPanel(): React.ReactNode {
           ))}
       </section>
 
-      <p style={{ fontSize: "12px", opacity: 0.5, fontFamily: "monospace", margin: 0 }}>
-        Hedera account: {accountId}
-      </p>
+      {/* Inline, not behind the ⓘ: this is the user's own account address,
+          the thing they hand out and copy. */}
+      <HederaRef kind="account" label="Hedera account" value={accountId} />
     </div>
   );
 }

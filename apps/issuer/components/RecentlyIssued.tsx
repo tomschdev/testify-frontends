@@ -6,6 +6,8 @@ import {
   Badge,
   Card,
   EmptyState,
+  HederaInfo,
+  HederaRef,
   siteThemes,
   tokens,
   useBoundedPoll,
@@ -106,21 +108,22 @@ function IssuedCard({ entry }: { entry: IssuedEntry }): React.ReactNode {
       <div style={{ fontSize: "13px", opacity: 0.75 }}>
         Issued to {entry.subject} · {new Date(entry.issuedAtMs).toLocaleTimeString()}
       </div>
-      <div
-        style={{
-          fontSize: "12px",
-          fontFamily: tokens.font.mono,
-          opacity: 0.55,
-          overflowWrap: "anywhere",
-        }}
-      >
-        <div>
-          NFT {entry.tokenId} · serial {entry.serial}
-        </div>
-        <div>
-          HCS topic {entry.topicId} · sequence {entry.sequenceNumber}
-        </div>
-      </div>
+      {/* The mint receipt — evidence the issuance landed, not something the
+          issuer works from. Behind the ⓘ. */}
+      <HederaInfo title="Issuance receipt">
+        <HederaRef
+          kind="token"
+          label="NFT"
+          value={entry.tokenId}
+          serialNumber={entry.serial}
+        />
+        <HederaRef
+          kind="topic-message"
+          label="HCS topic"
+          value={entry.topicId}
+          sequenceNumber={entry.sequenceNumber}
+        />
+      </HederaInfo>
       {status === "timeout" && (
         <div style={{ fontSize: "12px", color: tokens.color.warning }}>
           The mirror node has not shown this credential within 120s. It may still be
