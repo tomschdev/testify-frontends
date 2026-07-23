@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { tokens } from "@attestant/ui";
+import { HederaRef, tokens } from "@attestant/ui";
 import { RetrieveMyUserRequest, User } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/user_pb";
 import { UsersServicePromiseClient } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/user_grpc_web_pb";
 
@@ -50,6 +50,17 @@ export function MyUser(): React.ReactNode {
       <dt style={{ opacity: 0.6 }}>Name</dt>
       <dd style={{ margin: 0 }}>
         {user.givenName} {user.familyName}
+      </dd>
+      <dt style={{ opacity: 0.6 }}>Hedera account</dt>
+      {/* Label suppressed — the <dt> already names it; HederaRef keeps the
+          copy affordance and HashScan link consistent with the other consoles. */}
+      <dd style={{ margin: 0 }}>
+        <HederaRef
+          kind="account"
+          label={null}
+          value={user.hederaAccountAddress}
+          fallback="not provisioned yet"
+        />
       </dd>
     </dl>
   );
