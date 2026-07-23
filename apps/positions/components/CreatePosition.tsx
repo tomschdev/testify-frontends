@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { tokens } from "@attestant/ui";
+import { HederaRef, tokens } from "@attestant/ui";
 import { Organisation } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/organisation_pb";
 import {
   CreatePositionRequest,
@@ -110,7 +110,9 @@ export function CreatePosition({
   const canPost = !posting && orgName !== "" && title.trim() !== "" && filtersValid;
 
   return (
-    <div style={{ display: "grid", gap: "8px", maxWidth: "560px" }}>
+    // minWidth: 0 so a wide child shrinks with the panel instead of widening
+    // the grid past it — the panel has no horizontal scroll to fall back on.
+    <div style={{ display: "grid", gap: "8px", maxWidth: "560px", minWidth: 0 }}>
       <label style={{ fontSize: "13px", opacity: 0.75 }}>
         Posting as
         <select
@@ -125,10 +127,17 @@ export function CreatePosition({
           ))}
         </select>
       </label>
+      {/* HederaRef rather than a raw monospace line: an issuer key is one
+          unbreakable token, and Panel clips (overflow: hidden) rather than
+          scrolls, so an un-elided key silently cropped the whole form. */}
       {selectedOrg && (
-        <div style={{ fontSize: "12px", fontFamily: "monospace", opacity: 0.55 }}>
-          Hedera account {selectedOrg.hederaAccountAddress || "—"} · issuer key{" "}
-          {selectedOrg.issuerPublicKey || "—"}
+        <div style={{ display: "grid", gap: "4px", minWidth: 0 }}>
+          <HederaRef
+            kind="account"
+            label="Hedera account"
+            value={selectedOrg.hederaAccountAddress}
+          />
+          <HederaRef kind="key" label="Issuer key" value={selectedOrg.issuerPublicKey} />
         </div>
       )}
       <input
@@ -187,6 +196,11 @@ export function CreatePosition({
 }
 
 const inputStyle = {
+  // An <input> sizes itself from its `size` attribute and a grid item's
+  // min-width defaults to that intrinsic width; both must be neutralised or
+  // the field pushes the form wider than the panel.
+  width: "100%",
+  minWidth: 0,
   background: tokens.color.surface,
   border: `${tokens.border.default} solid ${tokens.color.border}`,
   borderRadius: tokens.radius.md,

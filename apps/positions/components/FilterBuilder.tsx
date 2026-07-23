@@ -154,7 +154,7 @@ function FilterRow({
       }}
     >
       {draft.kind === "spec" ? (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center", minWidth: 0 }}>
           <select
             value={draft.spec.credentialType}
             disabled={disabled}
@@ -189,7 +189,7 @@ function FilterRow({
               style={{ ...builderInputStyle, width: "58px" }}
             />
           </label>
-          <label style={{ fontSize: "12px", opacity: 0.7, display: "flex", alignItems: "center", gap: "6px", flex: "1 1 220px" }}>
+          <label style={{ fontSize: "12px", opacity: 0.7, display: "flex", alignItems: "center", gap: "6px", flex: "1 1 220px", minWidth: 0 }}>
             issued by
             <input
               value={draft.spec.issuer}
@@ -251,6 +251,10 @@ function FilterRow({
 }
 
 const builderInputStyle = {
+  // Fields carry resource names and issuer keys; without these they claim
+  // their intrinsic width and push the row past the panel, which clips.
+  maxWidth: "100%",
+  minWidth: 0,
   background: tokens.color.surface,
   border: `${tokens.border.default} solid ${tokens.color.border}`,
   borderRadius: "8px",
