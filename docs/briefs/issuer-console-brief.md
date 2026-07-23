@@ -18,7 +18,7 @@ Backend source of truth: `/Users/thomasscholtz/alis.build/interface/build/ti`
 | §1.4 Organisation state (list + role) | ⚠️ List built; **role display missing** |
 | §1.5 Issue XP Credential | ❌ Not built |
 | §1.6 Issue Reputation Credential | ❌ Not built |
-| §1.7–1.8 XP Token create/issue | ❌ Not built — **and has no backend surface, see Blockers** |
+| §1.7–1.8 XP Token create/issue | ❌ Not built — backend surface exists as of 2026-07-23, see `xp-token-brief.md` |
 | §1.9 Recently issued list | ❌ Not built (feature list says "already built" — that refers to a prior codebase, not this repo) |
 
 ## Features to build, in order
@@ -87,12 +87,9 @@ is holder-scoped. Two layers:
 
 ## Blockers / flags
 
-- **XP Token create + issue (§1.7–1.8): no backend surface exists.** `issue-v1`
-  exposes exactly two routes (`credentials:prepare`, `credentials:submit` —
-  verified in `issue/v1/main.go:99-100`), and no token RPC exists on any neuron.
-  These were optional/cut-first anyway — **do not build**; request the endpoints
-  from backend if they're wanted. The Profile app's XP Tokens screen shows an
-  empty state accordingly.
+- ~~**XP Token create + issue (§1.7–1.8): no backend surface exists.**~~
+  Unblocked 2026-07-23: `issue-v1` now exposes `xp-tokens:prepare|submit` and
+  `xp:prepare|submit`. See `xp-token-brief.md` — same signing flow as §1.5–1.6.
 - **Role display** depends on `GetIamPolicy` being permitted for the caller — verify
   against the deployed service before committing to the UI shape.
 
