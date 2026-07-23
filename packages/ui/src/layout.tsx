@@ -18,63 +18,106 @@ import { siteThemes, tokens, type SiteKey } from "./tokens";
  */
 
 // ── AppBar ──────────────────────────────────────────────────────────────
-// A per-site accent square marks which product/console you are in; it stays
-// visible when the hero scrolls away.
+/**
+ * The single bar at the top of every console: the TESTIFY wordmark and the
+ * "know and be known" slogan chip on the black product ground, then the
+ * console's own name and its actions. One bar, so the product identity and
+ * the console identity never stack into two rows of chrome.
+ *
+ * It is sticky, so which console you are in stays visible as the hero scrolls
+ * away. Both shells render it — `Dashboard` passes the console name,
+ * `MobileShell` passes the current screen's title.
+ */
 export interface AppBarProps {
   site: SiteKey;
-  /** Product wordmark, mono. Defaults to "Project Attestant". */
-  product?: string;
-  /** Console name shown bold, e.g. "Issuer Console". */
+  /** Console name (or, on mobile, the screen title), shown bold. */
   name: string;
   /** Right-aligned slot — sign in/out, etc. */
   actions?: ReactNode;
 }
 
-export function AppBar({ site, product = "Project Attestant", name, actions }: AppBarProps): ReactNode {
+export function AppBar({ site, name, actions }: AppBarProps): ReactNode {
   const theme = siteThemes[site];
   return (
     <header
+      className="testify-appbar"
       style={{
         position: "sticky",
         top: 0,
         zIndex: 10,
         display: "flex",
         alignItems: "center",
-        gap: "12px",
-        padding: "12px 20px",
-        background: tokens.color.surface,
-        borderBottom: `${tokens.border.default} solid ${tokens.color.ink}`,
+        gap: "14px",
+        padding: "10px 20px",
+        background: tokens.color.ink,
+        color: tokens.color.surface,
+        fontFamily: tokens.font.sans,
       }}
     >
+      <a href="/" style={wordmarkStyle}>
+        Testify
+      </a>
+      <span className="testify-appbar-slogan" style={sloganStyle}>
+        Know and be known.
+      </span>
+      <span style={{ opacity: 0.45, flex: "none" }}>/</span>
       <span style={siteMarkStyle(theme.accent)} />
       <span
         style={{
-          fontFamily: tokens.font.mono,
-          fontSize: "12px",
-          fontWeight: 700,
-          letterSpacing: "0.12em",
-          textTransform: "uppercase",
-          color: tokens.color.textMuted,
+          fontWeight: 800,
+          fontSize: "15px",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
         }}
       >
-        {product}
+        {name}
       </span>
-      <span style={{ color: tokens.color.textMuted }}>/</span>
-      <span style={{ fontWeight: 800, fontSize: "15px" }}>{name}</span>
-      {actions !== undefined && <div style={{ marginLeft: "auto" }}>{actions}</div>}
+      {actions !== undefined && <div style={{ marginLeft: "auto", flex: "none" }}>{actions}</div>}
     </header>
   );
 }
 
+const wordmarkStyle: CSSProperties = {
+  flex: "none",
+  fontSize: "20px",
+  fontWeight: 800,
+  letterSpacing: "0.06em",
+  lineHeight: 1,
+  textTransform: "uppercase",
+  color: tokens.color.surface,
+  textDecoration: "none",
+};
+
+const sloganStyle: CSSProperties = {
+  flex: "none",
+  display: "inline-block",
+  padding: "4px 9px",
+  background: tokens.color.surface,
+  color: tokens.color.ink,
+  border: `${tokens.border.default} solid ${tokens.color.ink}`,
+  borderRadius: tokens.radius.sm,
+  // White-on-black, so an ink shadow would be invisible; a white ring around
+  // the black offset keeps the stacked-card look readable on the dark bar.
+  boxShadow: `3px 3px 0 0 ${tokens.color.ink}, 3px 3px 0 2px ${tokens.color.surface}`,
+  fontSize: "10px",
+  fontWeight: 800,
+  letterSpacing: "0.08em",
+  lineHeight: 1.1,
+  textTransform: "uppercase",
+  whiteSpace: "nowrap",
+};
+
+/** Per-site accent square — the cue for which console you are in. */
 function siteMarkStyle(accent: string): CSSProperties {
   return {
-    width: "14px",
-    height: "14px",
+    width: "12px",
+    height: "12px",
     flex: "none",
     background: accent,
-    border: `${tokens.border.thin} solid ${tokens.color.ink}`,
+    // Bordered in the bar's own foreground so it reads against black.
+    border: `${tokens.border.thin} solid ${tokens.color.surface}`,
     borderRadius: "3px",
-    boxShadow: tokens.shadow.sm,
   };
 }
 
@@ -279,7 +322,6 @@ export interface MobileShellProps {
 }
 
 export function MobileShell({ site, title, actions, nav, children }: MobileShellProps): ReactNode {
-  const theme = siteThemes[site];
   return (
     <div
       style={{
@@ -291,23 +333,7 @@ export function MobileShell({ site, title, actions, nav, children }: MobileShell
         fontFamily: tokens.font.sans,
       }}
     >
-      <header
-        style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 10,
-          display: "flex",
-          alignItems: "center",
-          gap: "10px",
-          padding: "14px 18px",
-          background: tokens.color.surface,
-          borderBottom: `${tokens.border.default} solid ${tokens.color.ink}`,
-        }}
-      >
-        <span style={siteMarkStyle(theme.accent)} />
-        <span style={{ fontWeight: 800, fontSize: "17px" }}>{title}</span>
-        {actions !== undefined && <div style={{ marginLeft: "auto" }}>{actions}</div>}
-      </header>
+      <AppBar site={site} name={title} actions={actions} />
       <main
         style={{
           flex: 1,

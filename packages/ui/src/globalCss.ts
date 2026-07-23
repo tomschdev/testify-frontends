@@ -53,11 +53,10 @@ body { display: flex; flex-direction: column; }
 
 ::selection { background: #FFD23F; color: #000000; }
 
-/* Product banner: on a phone the wordmark plus three console links already
-   fill the bar, so the slogan chip drops out and the links tighten up. */
+/* App bar: on a phone the wordmark, console name and actions already fill the
+   bar, so the slogan chip drops out and the spacing tightens. */
 @media (max-width: 560px) {
-  .testify-banner-slogan { display: none !important; }
-  .testify-banner { gap: 10px !important; padding: 9px 14px !important; }
-  .testify-banner nav { gap: 14px !important; }
+  .testify-appbar-slogan { display: none !important; }
+  .testify-appbar { gap: 10px !important; padding: 9px 14px !important; }
 }
 `;
