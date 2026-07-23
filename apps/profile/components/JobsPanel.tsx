@@ -2,9 +2,22 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { ListPositionsRequest, SearchProfilesRequest } from "@internal.ti.alis.build/protobuf/interface/ti/profiles/v1/mirror_pb";
+import {
+  ListCredentialsRequest,
+  ListPositionsRequest,
+  ListTokenHoldingsRequest,
+  SearchProfilesRequest,
+} from "@internal.ti.alis.build/protobuf/interface/ti/profiles/v1/mirror_pb";
 import { Position, PositionState } from "@internal.ti.alis.build/protobuf/interface/ti/positions/v1/positions_pb";
 
+import {
+  CREDENTIAL_TYPE_LABELS,
+  evaluateRequirements,
+  type EvaluableCredential,
+  type EvaluableTokenHolding,
+  type EvaluationSubject,
+  type FilterEvaluation,
+} from "@attestant/filter-spec";
 import { siteThemes, tokens } from "@attestant/ui";
 
 import { Badge, EmptyState, ErrorState, SectionHeader, buttonStyle } from "@/components/primitives";
@@ -30,6 +43,22 @@ type Eligibility =
   | { phase: "done"; eligible: boolean }
   | { phase: "error"; message: string };
 
+/**
+ * What the signed-in user brings to the per-filter match explanation (§3.9):
+ * their credentials and their token balances, fetched once per feed load.
+ *
+ * `resolveXpToken` is deliberately absent. An issuer's XP token is created
+ * with memo `xp:<issuer account>`, but the mirror's `Token` exposes neither
+ * memo nor treasury and there is no lookup-by-issuer RPC — the only record of
+ * the mapping lives in the issuer console's localStorage. So XP-balance
+ * filters evaluate to *unknown* here rather than to a wrong `false`. Wiring a
+ * resolver in is a one-line change once a lookup exists.
+ */
+type SubjectState =
+  | { phase: "loading" }
+  | { phase: "error"; message: string }
+  | { phase: "ready"; subject: EvaluationSubject };
+
 const STATE_LABELS: Record<PositionState, { label: string; tone: "positive" | "negative" | "neutral" }> = {
   [PositionState.POSITION_STATE_UNSPECIFIED]: { label: "Unknown", tone: "neutral" },
   [PositionState.POSITION_STATE_OPEN]: { label: "Open", tone: "positive" },
@@ -48,6 +77,10 @@ export function JobsPanel({ hasSession }: { hasSession: boolean }): React.ReactN
   const [feed, setFeed] = useState<FeedState>({ phase: "loading" });
   const [eligibility, setEligibility] = useState<Record<string, Eligibility>>({});
   const [qualifiedOnly, setQualifiedOnly] = useState(false);
+  const [subject, setSubject] = useState<SubjectState>({ phase: "loading" });
+  // Bumped by every feed load so the subject refetches alongside it — during
+  // the demo a just-landed credential must be able to change the explanation.
+  const [reloadKey, setReloadKey] = useState(0);
 
   const myAddress =
     hasSession && me.phase === "ready" ? me.user.hederaAccountAddress : "";
@@ -57,6 +90,7 @@ export function JobsPanel({ hasSession }: { hasSession: boolean }): React.ReactN
     // A fresh feed load re-runs the qualify checks too — during the demo a
     // just-landed credential must be able to flip the badge.
     setEligibility({});
+    setReloadKey((k) => k + 1);
 
     const req = new ListPositionsRequest();
     req.setPageSize(PAGE_SIZE);
@@ -69,6 +103,44 @@ export function JobsPanel({ hasSession }: { hasSession: boolean }): React.ReactN
   useEffect(() => {
     loadFeed();
   }, [loadFeed]);
+
+  // The user's own credentials and balances, for the §3.9 match explanation.
+  // One fetch for the whole feed — the same subject is evaluated against every
+  // position's filters.
+  useEffect(() => {
+    if (!myAddress) {
+      return;
+    }
+    let cancelled = false;
+
+    const credReq = new ListCredentialsRequest();
+    credReq.setAccountId(myAddress);
+    const holdingsReq = new ListTokenHoldingsRequest();
+    holdingsReq.setAccountId(myAddress);
+
+    Promise.all([
+      mirrorClient.listCredentials(credReq, {}),
+      mirrorClient.listTokenHoldings(holdingsReq, {}),
+    ])
+      .then(([credRes, holdingsRes]) => {
+        if (cancelled) return;
+        const credentials: EvaluableCredential[] = credRes
+          .toObject()
+          .credentialsList.map((c) => ({ type: c.type, issuer: c.issuer }));
+        const holdings: EvaluableTokenHolding[] = holdingsRes
+          .toObject()
+          .holdingsList.map((h) => ({ tokenId: h.tokenId, balance: h.balance }));
+        setSubject({ phase: "ready", subject: { credentials, holdings } });
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setSubject({ phase: "error", message: errorMessage(err) });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [myAddress, reloadKey]);
 
   // Qualification check (§3.8): one SearchProfiles call per position in the
   // feed, cached per position name in `eligibility`.
@@ -177,6 +249,7 @@ export function JobsPanel({ hasSession }: { hasSession: boolean }): React.ReactN
                 position={position}
                 signedIn={Boolean(myAddress)}
                 eligibility={eligibility[position.name]}
+                subject={subject}
               />
             ))}
           </ul>
@@ -206,17 +279,90 @@ function QualifyBadge({
   );
 }
 
+/**
+ * The §3.9 match explanation for one filter, rendered from the predicate's
+ * structure rather than from its label.
+ */
+function FilterExplanation({
+  evaluation,
+}: {
+  evaluation: FilterEvaluation;
+}): React.ReactNode {
+  const { text, tone } = explain(evaluation);
+  return (
+    <li style={{ marginBottom: "2px" }}>
+      <span>{evaluation.criteria}</span>
+      <span
+        style={{
+          display: "block",
+          fontSize: "12px",
+          color:
+            tone === "positive"
+              ? tokens.color.success
+              : tone === "negative"
+                ? tokens.color.danger
+                : tokens.color.textMuted,
+        }}
+      >
+        {text}
+      </span>
+    </li>
+  );
+}
+
+function explain(evaluation: FilterEvaluation): {
+  text: string;
+  tone: "positive" | "negative" | "neutral";
+} {
+  switch (evaluation.kind) {
+    case "credentialCount": {
+      const label = CREDENTIAL_TYPE_LABELS[evaluation.spec.credentialType];
+      const noun = evaluation.required === 1 ? label : `${label}s`;
+      return {
+        text: `You hold ${evaluation.held} of ${evaluation.required} required ${noun} from ${evaluation.spec.issuer}.`,
+        tone: evaluation.satisfied ? "positive" : "negative",
+      };
+    }
+    case "xpBalance":
+      if (evaluation.balance === null) {
+        // See SubjectState: no issuer → XP-token lookup exists yet.
+        return {
+          text: `Needs ${evaluation.required} XP from ${evaluation.spec.issuer} — your balance for that issuer can't be checked here yet.`,
+          tone: "neutral",
+        };
+      }
+      return {
+        text: `Your XP balance from ${evaluation.spec.issuer} is ${evaluation.balance} of ${evaluation.required} required.`,
+        tone: evaluation.satisfied ? "positive" : "negative",
+      };
+    case "legacy":
+      return {
+        text: "Legacy filter — stored before filters carried structure, so it cannot be checked or enforced.",
+        tone: "neutral",
+      };
+  }
+}
+
 function PositionCard({
   position,
   signedIn,
   eligibility,
+  subject,
 }: {
   position: Position.AsObject;
   signedIn: boolean;
   eligibility: Eligibility | undefined;
+  subject: SubjectState;
 }): React.ReactNode {
   const stateInfo = STATE_LABELS[position.state] ?? STATE_LABELS[0];
-  const activeFilters = position.requirements?.filtersList.filter((f) => f.active) ?? [];
+  const allFilters = position.requirements?.filtersList ?? [];
+  const activeFilters = allFilters.filter((f) => f.active);
+  // Evaluated only when signed in and the subject loaded; otherwise the
+  // requirements render as plain labels, as they did before.
+  const evaluation =
+    signedIn && subject.phase === "ready"
+      ? evaluateRequirements(activeFilters, subject.subject)
+      : null;
 
   return (
     <li
@@ -245,15 +391,21 @@ function PositionCard({
       {activeFilters.length > 0 && (
         <div>
           <div style={{ fontSize: "12px", opacity: 0.6, marginBottom: "2px" }}>Requirements</div>
-          {/* TODO(shared): once the FilterSpec parser/evaluator lands in
-              packages/ (owned by the Positions sprint), evaluate these against
-              the user's ListCredentials data for the §3.9 match explanation.
-              Until then filters render as the raw criteria text. */}
-          <ul style={{ margin: 0, paddingLeft: "18px", opacity: 0.8, fontSize: "13px" }}>
-            {activeFilters.map((f) => (
-              <li key={f.naturalLanguageCriteria}>{f.naturalLanguageCriteria}</li>
-            ))}
+          <ul style={{ margin: 0, paddingLeft: "18px", opacity: 0.85, fontSize: "13px" }}>
+            {evaluation
+              ? evaluation.filters.map((f) => (
+                  <FilterExplanation key={f.criteria} evaluation={f} />
+                ))
+              : activeFilters.map((f) => (
+                  <li key={f.naturalLanguageCriteria}>{f.naturalLanguageCriteria}</li>
+                ))}
           </ul>
+          {signedIn && subject.phase === "error" && (
+            <div style={{ fontSize: "12px", color: tokens.color.textMuted }}>
+              Could not load your credentials, so these are shown unchecked:{" "}
+              {subject.message}
+            </div>
+          )}
         </div>
       )}
 

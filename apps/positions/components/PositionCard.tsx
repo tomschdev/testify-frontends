@@ -4,7 +4,11 @@ import { useState } from "react";
 
 import * as fieldMaskPb from "google-protobuf/google/protobuf/field_mask_pb";
 
-import { parseFilterCriteria } from "@attestant/filter-spec";
+import {
+  isLegacyWireFilter,
+  requirementsFromFilters,
+  type WireFilter,
+} from "@attestant/filter-spec";
 import { HederaInfo, HederaRef, siteThemes, tokens } from "@attestant/ui";
 import { Organisation } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/organisation_pb";
 import {
@@ -17,10 +21,11 @@ import {
 
 import { EligibleProfiles } from "@/components/EligibleProfiles";
 import {
-  draftCriteria,
   draftFromWire,
   draftIsValid,
   draftsHaveDuplicates,
+  draftLabel,
+  draftToProto,
   FilterBuilder,
   type DraftFilter,
 } from "@/components/FilterBuilder";
@@ -48,19 +53,8 @@ function formatTime(ts: TimestampObject | undefined): string {
   return new Date(ts.seconds * 1000).toLocaleString();
 }
 
-function filtersToRequirements(
-  filters: readonly { criteria: string; active: boolean }[],
-): Requirements {
-  const requirements = new Requirements();
-  requirements.setFiltersList(
-    filters.map(({ criteria, active }) => {
-      const filter = new Filter();
-      filter.setNaturalLanguageCriteria(criteria);
-      filter.setActive(active);
-      return filter;
-    }),
-  );
-  return requirements;
+function filtersToRequirements(filters: readonly Filter[]): Requirements {
+  return requirementsFromFilters(filters);
 }
 
 /**
@@ -73,7 +67,7 @@ async function updatePosition(
   changes: {
     title?: string;
     description?: string;
-    filters?: readonly { criteria: string; active: boolean }[];
+    filters?: readonly Filter[];
   },
 ): Promise<void> {
   const updated = new Position();
@@ -132,16 +126,20 @@ export function PositionCard({
   const { location, body } = splitDescription(position.description);
 
   async function toggleFilter(index: number): Promise<void> {
-    // §2.6: flipping `active` is independent of the filter's configuration —
-    // flip the bool, keep the string, resend the whole list.
+    // §2.6: flipping `active` is independent of the filter's predicate — flip
+    // the bool, carry the predicate through untouched, resend the whole list.
+    // Round-tripping through a draft preserves legacy filters verbatim and
+    // re-derives the label for structured ones.
     setBusy(true);
     setWriteError(null);
     try {
       await updatePosition(position, {
-        filters: filters.map((f, i) => ({
-          criteria: f.naturalLanguageCriteria,
-          active: i === index ? !f.active : f.active,
-        })),
+        filters: filters.map((f, i) =>
+          draftToProto({
+            ...draftFromWire(f),
+            active: i === index ? !f.active : f.active,
+          }),
+        ),
       });
       onChanged();
     } catch (err: unknown) {
@@ -184,7 +182,7 @@ export function PositionCard({
         <EditPositionForm
           position={position}
           organisations={organisations}
-          orgName={org.name}
+          issuerAccountId={org.hederaAccountAddress}
           onDone={(changed) => {
             setEditing(false);
             if (changed) {
@@ -247,8 +245,11 @@ export function PositionCard({
                       }}
                     >
                       {f.naturalLanguageCriteria}
-                      {parseFilterCriteria(f.naturalLanguageCriteria) === null && (
-                        <span style={{ fontSize: "11px", opacity: 0.6 }}> (raw text)</span>
+                      {isLegacyWireFilter(f) && (
+                        <span style={{ fontSize: "11px", color: tokens.color.warning }}>
+                          {" "}
+                          (legacy — not enforceable)
+                        </span>
                       )}
                     </span>
                   </li>
@@ -346,12 +347,13 @@ export function PositionCard({
 function EditPositionForm({
   position,
   organisations,
-  orgName,
+  issuerAccountId,
   onDone,
 }: {
   position: Position.AsObject;
   organisations: Organisation.AsObject[];
-  orgName: string;
+  /** The posting org's Hedera account id — default issuer for new filters. */
+  issuerAccountId: string;
   onDone: (changed: boolean) => void;
 }): React.ReactNode {
   const initial = splitDescription(position.description);
@@ -364,13 +366,15 @@ function EditPositionForm({
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  const originalFilters = position.requirements?.filtersList ?? [];
+  const originalFilters: WireFilter[] = position.requirements?.filtersList ?? [];
   const newDescription = composeDescription(location, body);
+  // The label is derived from the predicate, so comparing labels compares
+  // predicates — every field of both predicate types appears in the label.
   const filtersChanged =
     drafts.length !== originalFilters.length ||
     drafts.some(
       (d, i) =>
-        draftCriteria(d) !== originalFilters[i].naturalLanguageCriteria ||
+        draftLabel(d) !== originalFilters[i].naturalLanguageCriteria ||
         d.active !== originalFilters[i].active,
     );
   const titleChanged = title.trim() !== position.title;
@@ -391,14 +395,7 @@ function EditPositionForm({
         ...(titleChanged ? { title: title.trim() } : {}),
         ...(descriptionChanged ? { description: newDescription } : {}),
         // Any filter change (add/remove/edit/toggle) resends the whole list.
-        ...(filtersChanged
-          ? {
-              filters: drafts.map((d) => ({
-                criteria: draftCriteria(d),
-                active: d.active,
-              })),
-            }
-          : {}),
+        ...(filtersChanged ? { filters: drafts.map(draftToProto) } : {}),
       });
       onDone(true);
     } catch (err: unknown) {
@@ -432,7 +429,7 @@ function EditPositionForm({
         drafts={drafts}
         onChange={setDrafts}
         organisations={organisations}
-        defaultIssuer={orgName}
+        defaultIssuer={issuerAccountId}
         disabled={saving}
       />
       {drafts.length === 0 && (
