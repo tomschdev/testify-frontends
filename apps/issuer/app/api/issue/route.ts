@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { secp256k1 } from "@noble/curves/secp256k1.js";
-import { keccak_256 } from "@noble/hashes/sha3.js";
-import { FieldMask } from "google-protobuf/google/protobuf/field_mask_pb";
+import { getValidAccessToken } from "@attestant/auth";
+import { GrpcStatusError } from "@attestant/auth/grpc";
 
-import { GetOrganisationRequest, Organisation } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/organisation_pb";
-import { ISSUE_SERVICE, USERS_SERVICE, getValidAccessToken } from "@attestant/auth";
-import { GrpcStatusError, callUnary, serviceIdToken } from "@attestant/auth/grpc";
+import {
+  fetchIssuerIdentity,
+  isFailure,
+  issueHeaders,
+  prepareSignSubmit,
+} from "@/lib/issueSigning";
 
 export const dynamic = "force-dynamic";
 
@@ -25,10 +27,11 @@ export const dynamic = "force-dynamic";
  *   3. POST /v1/credentials:submit → {topicId, sequenceNumber, contentHash,
  *      tokenId, serial}
  *
- * issue-v1 is plain HTTP/JSON (not gRPC) by design — canonicalisation is
- * owned entirely by that server, so it is called with fetch carrying the same
- * two tokens as every backend call: `authorization` = SA Google ID token,
- * `x-alis-forwarded-authorization` = the user's JWT.
+ * The legs themselves live in `@/lib/issueSigning`, shared verbatim with the
+ * XP token routes (§1.7–1.8). issue-v1 is plain HTTP/JSON (not gRPC) by design
+ * — canonicalisation is owned entirely by that server, so it is called with
+ * fetch carrying the same two tokens as every backend call: `authorization` =
+ * SA Google ID token, `x-alis-forwarded-authorization` = the user's JWT.
  */
 
 const CREDENTIAL_TYPES = ["xp_credential", "reputation_credential"] as const;
@@ -43,6 +46,14 @@ interface IssueRequestBody {
   /** Recipient account public key, resolved via MirrorService.GetHederaAccount. */
   subjectPublicKey: string;
   title: string;
+}
+
+interface CredentialReceipt {
+  topicId: string;
+  sequenceNumber: number;
+  contentHash: string;
+  tokenId: string;
+  serial: number;
 }
 
 function parseBody(raw: unknown): IssueRequestBody | null {
@@ -76,17 +87,6 @@ function errorJson(status: number, message: string): NextResponse {
   return NextResponse.json({ error: message }, { status });
 }
 
-/** issue-v1 error bodies are {"error": "..."} — surface them verbatim. */
-async function issueServiceError(res: Response, leg: string): Promise<string> {
-  try {
-    const body = (await res.json()) as { error?: string };
-    if (typeof body.error === "string") return `${leg}: ${body.error}`;
-  } catch {
-    // Non-JSON error body — fall through to the status line.
-  }
-  return `${leg} failed with HTTP ${res.status}`;
-}
-
 export async function POST(req: NextRequest): Promise<NextResponse> {
   let body: IssueRequestBody | null;
   try {
@@ -108,97 +108,29 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // (persist-private-keys custody model — no client-side key storage). The
     // user's JWT is forwarded, so org IAM decides whether this caller may read
     // the organisation at all.
-    const usersIdToken = await serviceIdToken(USERS_SERVICE);
-    if ("error" in usersIdToken) return errorJson(500, usersIdToken.error);
+    const identity = await fetchIssuerIdentity(body.organisation, userToken);
+    if (isFailure(identity)) return errorJson(identity.status, identity.message);
 
-    const getOrg = new GetOrganisationRequest();
-    getOrg.setName(body.organisation);
-    const mask = new FieldMask();
-    mask.setPathsList(["hedera_account_address", "private_key"]);
-    getOrg.setReadMask(mask);
+    const headers = await issueHeaders(userToken);
+    if (isFailure(headers)) return errorJson(headers.status, headers.message);
 
-    const orgBytes = await callUnary(
-      USERS_SERVICE,
-      "/interface.ti.users.v1.OrganisationsService/GetOrganisation",
-      getOrg.serializeBinary(),
+    const receipt = await prepareSignSubmit<CredentialReceipt>(
+      "credentials",
       {
-        authorization: `Bearer ${usersIdToken.token}`,
-        "x-alis-forwarded-authorization": userToken,
-      },
-    );
-    const org = Organisation.deserializeBinary(orgBytes);
-    const issuer = org.getHederaAccountAddress();
-    const privateKeyHex = org.getPrivateKey().replace(/^0x/, "");
-    if (issuer === "" || privateKeyHex === "") {
-      return errorJson(
-        409,
-        "organisation has no on-chain identity or signing key — it may predate key persistence",
-      );
-    }
-
-    const issueIdToken = await serviceIdToken(ISSUE_SERVICE);
-    if ("error" in issueIdToken) return errorJson(500, issueIdToken.error);
-    const issueHeaders = {
-      "Content-Type": "application/json",
-      authorization: `Bearer ${issueIdToken.token}`,
-      "x-alis-forwarded-authorization": userToken,
-    };
-
-    // Leg 1: prepare — the server marshals the canonical payload once.
-    const prepareRes = await fetch(`${ISSUE_SERVICE}/v1/credentials:prepare`, {
-      method: "POST",
-      headers: issueHeaders,
-      body: JSON.stringify({
         type: body.type,
-        issuer,
+        issuer: identity.issuer,
         subject: body.subject,
         subjectPublicKey: body.subjectPublicKey,
         title: body.title,
-      }),
-      cache: "no-store",
-    });
-    if (!prepareRes.ok) {
-      return errorJson(502, await issueServiceError(prepareRes, "prepare"));
-    }
-    const { payload } = (await prepareRes.json()) as { payload: string };
-    if (typeof payload !== "string" || payload === "") {
-      return errorJson(502, "prepare returned no payload");
-    }
-
-    // Leg 2: sign the exact base64-decoded bytes. keccak256 + secp256k1 with
-    // prehash disabled reproduces hiero-sdk-go's ecdsa.SignCompact(keccak(m))
-    // 64-byte r‖s output; the payload string itself is passed through to
-    // submit untouched.
-    const payloadBytes = Buffer.from(payload, "base64");
-    const digest = keccak_256(payloadBytes);
-    const signature = secp256k1.sign(digest, Buffer.from(privateKeyHex, "hex"), {
-      prehash: false,
-    });
-
-    // Leg 3: submit — the verified signature is the only authorization.
-    const submitRes = await fetch(`${ISSUE_SERVICE}/v1/credentials:submit`, {
-      method: "POST",
-      headers: issueHeaders,
-      body: JSON.stringify({
-        payload,
-        signature: Buffer.from(signature).toString("base64"),
-      }),
-      cache: "no-store",
-    });
-    if (!submitRes.ok) {
-      return errorJson(502, await issueServiceError(submitRes, "submit"));
-    }
-    const receipt = (await submitRes.json()) as {
-      topicId: string;
-      sequenceNumber: number;
-      contentHash: string;
-      tokenId: string;
-      serial: number;
-    };
+      },
+      identity.privateKeyHex,
+      headers,
+    );
+    if (isFailure(receipt)) return errorJson(receipt.status, receipt.message);
 
     // `issuer` rides along so the client can match the credential when it
     // appears on the mirror node (pending → confirmed polling).
-    return NextResponse.json({ ...receipt, issuer });
+    return NextResponse.json({ ...receipt, issuer: identity.issuer });
   } catch (err) {
     if (err instanceof GrpcStatusError) {
       // 16 UNAUTHENTICATED / 7 PERMISSION_DENIED → the caller's problem;

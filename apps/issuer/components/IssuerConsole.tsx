@@ -11,11 +11,12 @@ import {
 } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/organisation_pb";
 import { UsersServicePromiseClient } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/user_grpc_web_pb";
 import { RetrieveMyUserRequest } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/user_pb";
-import { EmptyState, ErrorState, Panel, PanelGrid, tokens } from "@attestant/ui";
+import { EmptyState, ErrorState, Panel, PanelGrid, siteThemes, tokens } from "@attestant/ui";
 
 import { IssueCredentialForm } from "@/components/IssueCredentialForm";
 import { Organisations } from "@/components/Organisations";
 import { RecentlyIssued, type IssuedEntry } from "@/components/RecentlyIssued";
+import { XpTokens } from "@/components/XpTokens";
 
 // Same pattern as the alis console apps: grpc-web PromiseClient pointed at the
 // site's own origin; the session token stays server-side (httpOnly cookie) and
@@ -166,6 +167,13 @@ export function IssuerConsole(): React.ReactNode {
             onIssued={(entry) => setIssued((list) => [entry, ...list])}
           />
         )}
+      </Panel>
+
+      {/* XP tokens — the org's own fungible token, created once, then issued
+          in amounts (§1.7–1.8). Separate from XP *credentials* above: those
+          are NFTs describing an achievement, this is the balance. */}
+      <Panel wide title="XP tokens" accent={siteThemes.issuer.accent}>
+        {issuable.length === 0 ? needsIdentity : <XpTokens organisations={issuable} />}
       </Panel>
 
       {/* Audit log — confirmation of what this session issued. */}
