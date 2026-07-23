@@ -21,22 +21,30 @@ import { siteThemes, tokens, type SiteKey } from "./tokens";
 /**
  * The single bar at the top of every console: the TESTIFY wordmark and the
  * "know and be known" slogan chip on the black product ground, then the
- * console's own name and its actions. One bar, so the product identity and
+ * console's own identity and its actions. One bar, so the product identity and
  * the console identity never stack into two rows of chrome.
  *
  * It is sticky, so which console you are in stays visible as the hero scrolls
- * away. Both shells render it — `Dashboard` passes the console name,
- * `MobileShell` passes the current screen's title.
+ * away. Both shells render it, but they identify the console differently:
+ * `Dashboard` passes `audience`, shown as the accent chip (the headings are
+ * sentence-long and would only ellipsize up here); `MobileShell` passes the
+ * current screen's title as `name`.
  */
 export interface AppBarProps {
   site: SiteKey;
   /** Console name (or, on mobile, the screen title), shown bold. */
-  name: string;
+  name?: string;
+  /**
+   * Audience label, e.g. "For organisations". Rendered as the accent chip in
+   * place of `name` — it carries the per-site accent, so the accent square is
+   * dropped rather than doubling the same cue.
+   */
+  audience?: string;
   /** Right-aligned slot — sign in/out, etc. */
   actions?: ReactNode;
 }
 
-export function AppBar({ site, name, actions }: AppBarProps): ReactNode {
+export function AppBar({ site, name, audience, actions }: AppBarProps): ReactNode {
   const theme = siteThemes[site];
   return (
     <header
@@ -61,18 +69,24 @@ export function AppBar({ site, name, actions }: AppBarProps): ReactNode {
         Know and be known.
       </span>
       <span style={{ opacity: 0.45, flex: "none" }}>/</span>
-      <span style={siteMarkStyle(theme.accent)} />
-      <span
-        style={{
-          fontWeight: 800,
-          fontSize: "15px",
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-        }}
-      >
-        {name}
-      </span>
+      {audience !== undefined ? (
+        <span style={audienceChipStyle(theme.accent)}>{audience}</span>
+      ) : (
+        <>
+          <span style={siteMarkStyle(theme.accent)} />
+          <span
+            style={{
+              fontWeight: 800,
+              fontSize: "15px",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {name}
+          </span>
+        </>
+      )}
       {actions !== undefined && <div style={{ marginLeft: "auto", flex: "none" }}>{actions}</div>}
     </header>
   );
@@ -108,6 +122,30 @@ const sloganStyle: CSSProperties = {
   whiteSpace: "nowrap",
 };
 
+/**
+ * Audience chip on the bar's black ground. Same neo chip as the hero used to
+ * carry, but an ink drop shadow is invisible against black, so it takes the
+ * slogan chip's white ring to keep the stacked-card edge readable.
+ */
+function audienceChipStyle(accent: string): CSSProperties {
+  return {
+    flex: "none",
+    display: "inline-block",
+    padding: "4px 10px",
+    background: accent,
+    color: tokens.color.ink,
+    border: `${tokens.border.default} solid ${tokens.color.ink}`,
+    borderRadius: tokens.radius.sm,
+    boxShadow: `3px 3px 0 0 ${tokens.color.ink}, 3px 3px 0 2px ${tokens.color.surface}`,
+    fontSize: "11px",
+    fontWeight: 800,
+    letterSpacing: "0.06em",
+    lineHeight: 1.1,
+    textTransform: "uppercase",
+    whiteSpace: "nowrap",
+  };
+}
+
 /** Per-site accent square — the cue for which console you are in. */
 function siteMarkStyle(accent: string): CSSProperties {
   return {
@@ -122,34 +160,15 @@ function siteMarkStyle(accent: string): CSSProperties {
 }
 
 // ── PageHeader ──────────────────────────────────────────────────────────
+/** The hero. The audience chip lives on the `AppBar`, not here. */
 export interface PageHeaderProps {
-  site: SiteKey;
-  audience: string;
   name: string;
   purpose: string;
 }
 
-export function PageHeader({ site, audience, name, purpose }: PageHeaderProps): ReactNode {
-  const theme = siteThemes[site];
+export function PageHeader({ name, purpose }: PageHeaderProps): ReactNode {
   return (
     <div style={{ display: "grid", gap: "12px" }}>
-      <span
-        style={{
-          justifySelf: "start",
-          fontSize: "12px",
-          fontWeight: 700,
-          letterSpacing: "0.06em",
-          textTransform: "uppercase",
-          color: tokens.color.ink,
-          background: theme.accent,
-          border: `${tokens.border.default} solid ${tokens.color.ink}`,
-          boxShadow: tokens.shadow.sm,
-          borderRadius: tokens.radius.sm,
-          padding: "4px 10px",
-        }}
-      >
-        {audience}
-      </span>
       <h1
         style={{
           fontSize: "30px",
@@ -197,9 +216,9 @@ export function Dashboard({ site, name, audience, purpose, actions, children }: 
         fontFamily: tokens.font.sans,
       }}
     >
-      <AppBar site={site} name={name} actions={actions} />
+      <AppBar site={site} audience={audience} actions={actions} />
       <main style={{ maxWidth: "1000px", margin: "0 auto", padding: "32px 20px 72px" }}>
-        <PageHeader site={site} audience={audience} name={name} purpose={purpose} />
+        <PageHeader name={name} purpose={purpose} />
         <div style={{ marginTop: "28px" }}>{children}</div>
       </main>
     </div>
