@@ -11,7 +11,7 @@ import {
 } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/organisation_pb";
 import { UsersServicePromiseClient } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/user_grpc_web_pb";
 import { RetrieveMyUserRequest } from "@internal.ti.alis.build/protobuf/interface/ti/users/v1/user_pb";
-import { EmptyState, ErrorState, SectionHeader } from "@attestant/ui";
+import { EmptyState, ErrorState, Panel, PanelGrid, tokens } from "@attestant/ui";
 
 import { IssueCredentialForm } from "@/components/IssueCredentialForm";
 import { Organisations } from "@/components/Organisations";
@@ -125,20 +125,28 @@ export function IssuerConsole(): React.ReactNode {
 
   const issuable = orgs.organisations.filter((org) => org.hederaAccountAddress !== "");
 
-  return (
-    <div style={{ display: "grid", gap: "24px" }}>
-      <Organisations
-        organisations={orgs.organisations}
-        roles={roles}
-        onCreated={() => void load()}
-      />
+  const needsIdentity = (
+    <EmptyState>
+      Issuing needs an organisation with an on-chain identity. Create one in
+      Organisations.
+    </EmptyState>
+  );
 
-      <section>
-        <SectionHeader>Issue XP Credential</SectionHeader>
+  return (
+    <PanelGrid>
+      {/* Identity — who you are and who you can issue as. */}
+      <Panel wide title="Organisations" accent={tokens.palette.primary}>
+        <Organisations
+          organisations={orgs.organisations}
+          roles={roles}
+          onCreated={() => void load()}
+        />
+      </Panel>
+
+      {/* Issuing actions — two credential types, side by side. */}
+      <Panel title="Issue XP credential" accent={tokens.palette.secondary}>
         {issuable.length === 0 ? (
-          <EmptyState>
-            Issuing needs an organisation with an on-chain identity. Create one above.
-          </EmptyState>
+          needsIdentity
         ) : (
           <IssueCredentialForm
             variant="xp"
@@ -146,14 +154,11 @@ export function IssuerConsole(): React.ReactNode {
             onIssued={(entry) => setIssued((list) => [entry, ...list])}
           />
         )}
-      </section>
+      </Panel>
 
-      <section>
-        <SectionHeader>Issue Reputation Credential</SectionHeader>
+      <Panel title="Issue reputation credential" accent={tokens.palette.tertiary}>
         {issuable.length === 0 ? (
-          <EmptyState>
-            Issuing needs an organisation with an on-chain identity. Create one above.
-          </EmptyState>
+          needsIdentity
         ) : (
           <IssueCredentialForm
             variant="reputation"
@@ -161,12 +166,12 @@ export function IssuerConsole(): React.ReactNode {
             onIssued={(entry) => setIssued((list) => [entry, ...list])}
           />
         )}
-      </section>
+      </Panel>
 
-      <section>
-        <SectionHeader>Recently issued</SectionHeader>
+      {/* Audit log — confirmation of what this session issued. */}
+      <Panel wide title="Recently issued" accent={tokens.color.ink}>
         <RecentlyIssued entries={issued} />
-      </section>
-    </div>
+      </Panel>
+    </PanelGrid>
   );
 }

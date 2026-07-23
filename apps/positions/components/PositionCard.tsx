@@ -218,30 +218,39 @@ export function PositionCard({
                     key={f.naturalLanguageCriteria}
                     style={{
                       display: "flex",
-                      alignItems: "center",
+                      alignItems: "flex-start",
                       gap: "8px",
                       fontSize: "13px",
                       opacity: f.active ? 0.9 : 0.5,
                     }}
                   >
-                    {editable ? (
-                      <Toggle
-                        checked={f.active}
-                        disabled={busy}
-                        label={`Filter active: ${f.naturalLanguageCriteria}`}
-                        onChange={() => void toggleFilter(index)}
-                      />
-                    ) : (
-                      <Badge color={f.active ? tokens.color.success : tokens.color.textMuted}>
-                        {f.active ? "active" : "inactive"}
-                      </Badge>
-                    )}
-                    <span style={{ textDecoration: f.active ? "none" : "line-through" }}>
-                      {f.naturalLanguageCriteria}
+                    <span style={{ flex: "none", marginTop: "1px" }}>
+                      {editable ? (
+                        <Toggle
+                          checked={f.active}
+                          disabled={busy}
+                          label={`Filter active: ${f.naturalLanguageCriteria}`}
+                          onChange={() => void toggleFilter(index)}
+                        />
+                      ) : (
+                        <Badge color={f.active ? tokens.color.success : tokens.color.textMuted}>
+                          {f.active ? "active" : "inactive"}
+                        </Badge>
+                      )}
                     </span>
-                    {parseFilterCriteria(f.naturalLanguageCriteria) === null && (
-                      <span style={{ fontSize: "11px", opacity: 0.6 }}>(raw text)</span>
-                    )}
+                    <span
+                      style={{
+                        flex: 1,
+                        minWidth: 0,
+                        overflowWrap: "anywhere",
+                        textDecoration: f.active ? "none" : "line-through",
+                      }}
+                    >
+                      {f.naturalLanguageCriteria}
+                      {parseFilterCriteria(f.naturalLanguageCriteria) === null && (
+                        <span style={{ fontSize: "11px", opacity: 0.6 }}> (raw text)</span>
+                      )}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -318,7 +327,14 @@ export function PositionCard({
         )}
       </div>
 
-      <div style={{ opacity: 0.5, fontSize: "12px", fontFamily: "monospace" }}>
+      <div
+        style={{
+          opacity: 0.5,
+          fontSize: "12px",
+          fontFamily: "monospace",
+          overflowWrap: "anywhere",
+        }}
+      >
         {position.name}
       </div>
     </li>

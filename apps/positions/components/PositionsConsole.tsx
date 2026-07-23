@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { tokens } from "@attestant/ui";
+import { Panel, PanelGrid, tokens } from "@attestant/ui";
 
 import {
   ListMyOrganisationsRequest,
@@ -70,34 +70,28 @@ export function PositionsConsole(): React.ReactNode {
   }
 
   return (
-    <div style={{ display: "grid", gap: "20px" }}>
-      <section>
-        <h2 style={sectionHeadingStyle}>Your organisations</h2>
+    <PanelGrid>
+      {/* Identity — the organisations you can post as. */}
+      <Panel title="Your organisations" accent={tokens.palette.primary}>
         <OrgList organisations={orgs.organisations} />
-      </section>
+      </Panel>
 
-      <section>
-        <h2 style={sectionHeadingStyle}>Post a position</h2>
+      {/* Action — author a new position. */}
+      <Panel title="Post a position" accent={tokens.palette.secondary}>
         <CreatePosition
           organisations={orgs.organisations}
           onCreated={() => setRefreshToken((n) => n + 1)}
         />
-      </section>
+      </Panel>
 
-      <section>
-        <h2 style={sectionHeadingStyle}>Positions</h2>
+      {/* The live list of everything posted. */}
+      <Panel wide title="Positions" accent={tokens.color.ink}>
         <PositionsList
           organisations={orgs.organisations}
           refreshToken={refreshToken}
           onChanged={() => setRefreshToken((n) => n + 1)}
         />
-      </section>
-    </div>
+      </Panel>
+    </PanelGrid>
   );
 }
-
-const sectionHeadingStyle = {
-  fontSize: "15px",
-  margin: "0 0 10px",
-  opacity: 0.75,
-} as const;

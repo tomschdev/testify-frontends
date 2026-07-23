@@ -1,7 +1,5 @@
-import { SiteShell } from "@attestant/ui";
-
 import { JobsPanel } from "@/components/JobsPanel";
-import { ProfileNav } from "@/components/ProfileNav";
+import { AuthAction, ProfileShell } from "@/components/ProfileShell";
 import { hasSessionCookies } from "@/lib/session";
 
 export default async function JobsPage() {
@@ -10,14 +8,8 @@ export default async function JobsPage() {
   const hasSession = await hasSessionCookies();
 
   return (
-    <SiteShell
-      site="profile"
-      name="Jobs"
-      audience="For candidates"
-      purpose="Every posted position, with a live check of whether your credentials qualify you."
-    >
-      <ProfileNav active="/jobs" />
+    <ProfileShell active="/jobs" title="Jobs" actions={<AuthAction hasSession={hasSession} />}>
       <JobsPanel hasSession={hasSession} />
-    </SiteShell>
+    </ProfileShell>
   );
 }
