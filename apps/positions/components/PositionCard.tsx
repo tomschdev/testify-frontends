@@ -329,17 +329,6 @@ export function PositionCard({
           </div>
         )}
       </div>
-
-      <div
-        style={{
-          opacity: 0.5,
-          fontSize: "12px",
-          fontFamily: "monospace",
-          overflowWrap: "anywhere",
-        }}
-      >
-        {position.name}
-      </div>
     </li>
   );
 }

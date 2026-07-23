@@ -292,26 +292,30 @@ function FilterExplanation({
   return (
     <li style={{ marginBottom: "2px" }}>
       <span>{evaluation.criteria}</span>
-      <span
-        style={{
-          display: "block",
-          fontSize: "12px",
-          color:
-            tone === "positive"
-              ? tokens.color.success
-              : tone === "negative"
-                ? tokens.color.danger
-                : tokens.color.textMuted,
-        }}
-      >
-        {text}
-      </span>
+      {/* A filter with nothing to report shows its criteria alone. */}
+      {text !== null && (
+        <span
+          style={{
+            display: "block",
+            fontSize: "12px",
+            color:
+              tone === "positive"
+                ? tokens.color.success
+                : tone === "negative"
+                  ? tokens.color.danger
+                  : tokens.color.textMuted,
+          }}
+        >
+          {text}
+        </span>
+      )}
     </li>
   );
 }
 
 function explain(evaluation: FilterEvaluation): {
-  text: string;
+  /** `null` when there is nothing to say — the caller renders no line. */
+  text: string | null;
   tone: "positive" | "negative" | "neutral";
 } {
   switch (evaluation.kind) {
@@ -325,11 +329,10 @@ function explain(evaluation: FilterEvaluation): {
     }
     case "xpBalance":
       if (evaluation.balance === null) {
-        // See SubjectState: no issuer → XP-token lookup exists yet.
-        return {
-          text: `Needs ${evaluation.required} XP from ${evaluation.spec.issuer} — your balance for that issuer can't be checked here yet.`,
-          tone: "neutral",
-        };
+        // Unknown, not false: no issuer → XP-token lookup exists yet (see
+        // SubjectState). The criteria line stands on its own rather than
+        // explaining the gap to the candidate.
+        return { text: null, tone: "neutral" };
       }
       return {
         text: `Your XP balance from ${evaluation.spec.issuer} is ${evaluation.balance} of ${evaluation.required} required.`,
@@ -417,11 +420,9 @@ function PositionCard({
           className="neo-interactive"
           style={{ ...buttonStyle, background: siteThemes.profile.accent, color: tokens.color.ink }}
           onClick={() => undefined}
-          title="Demo only — applications are not wired up yet"
         >
           Apply
         </button>
-        <span style={{ fontSize: "11px", opacity: 0.45 }}>Demo only</span>
       </div>
 
       <div style={{ opacity: 0.5, fontSize: "12px", fontFamily: "monospace" }}>{position.name}</div>

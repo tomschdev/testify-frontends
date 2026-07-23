@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { HederaRef, tokens } from "@attestant/ui";
+import { Button, HederaRef, siteThemes, tokens } from "@attestant/ui";
 import { SearchProfilesRequest, SearchProfilesResponse } from "@internal.ti.alis.build/protobuf/interface/ti/profiles/v1/mirror_pb";
 
 import { mirrorClient } from "@/lib/clients";
@@ -73,17 +73,11 @@ export function EligibleProfiles({
 
   return (
     <div style={{ display: "grid", gap: "8px", fontSize: "13px" }}>
-      {/* Honest caveat (impl spec §4.3): the deployed matcher enforces the
-          fixed XP + Reputation predicate from the position's org regardless
-          of the configured filter text or active flags. Filters persist and
-          toggle, but do not change this answer until a filter-compiling
-          matcher lands backend-side. */}
-      <p style={{ margin: 0, fontSize: "12px", color: tokens.color.warning, opacity: 0.9 }}>
-        Eligibility is evaluated against the standard XP + Reputation
-        predicate for this position&apos;s organisation — configured filters are
-        not yet enforced by the matcher.
-      </p>
-
+      {/* Caveat, no longer surfaced in the UI (impl spec §4.3): the deployed
+          matcher enforces the fixed XP + Reputation predicate from the
+          position's org regardless of the configured filter text or active
+          flags. Filters persist and toggle, but do not change this answer
+          until a filter-compiling matcher lands backend-side. */}
       {eligible.length === 0 ? (
         <p style={{ margin: 0, opacity: 0.7 }}>
           No profiles currently satisfy this position&apos;s predicate.
@@ -117,14 +111,16 @@ export function EligibleProfiles({
                 />
               </div>
               {/* Dummy by design (feature-list §2.5): renders, clickable,
-                  does nothing. No invite/notification flow in this POC. */}
-              <button
-                type="button"
+                  does nothing. No invite/notification flow in this POC.
+                  Styled as the accent-filled primary action, symmetric with
+                  the Profile Console's "Apply". */}
+              <Button
+                tone={siteThemes.positions.accent}
                 onClick={() => undefined}
-                style={{ ...smallButtonStyle, marginLeft: "auto" }}
+                style={{ marginLeft: "auto", padding: "8px 16px", fontSize: "13px" }}
               >
                 Invite for interview
-              </button>
+              </Button>
             </li>
           ))}
         </ul>
