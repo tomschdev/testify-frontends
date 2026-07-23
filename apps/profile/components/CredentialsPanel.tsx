@@ -24,6 +24,27 @@ interface TokenHoldingView {
   balance: number;
   name: string;
   symbol: string;
+  /** Hedera token type as the mirror reports it — see `isXpToken`. */
+  type: string;
+}
+
+/**
+ * XP is the only *fungible* thing a candidate holds (TECHNICAL.md §Hedera
+ * assets): credentials are NonFungibleUnique collections, so every credential
+ * held also shows up as a token holding of the platform's credential
+ * collection — "Interface Reputation Credentials", balance 1. Those are the
+ * same records already listed above as credentials, so they are excluded here
+ * rather than doubled as XP.
+ *
+ * Spelling varies between the mirror REST form (`FUNGIBLE_COMMON`) and the
+ * SDK's (`FungibleCommon`), so the comparison is normalised. A holding whose
+ * type could not be read at all (GetToken failed — name and symbol are blank
+ * too) is kept: hiding a real balance is worse than one unlabelled row.
+ */
+function isXpToken(type: string): boolean {
+  const normalised = type.replace(/[^a-z]/gi, "").toUpperCase();
+  if (normalised === "") return true;
+  return normalised.includes("FUNGIBLE") && !normalised.includes("NONFUNGIBLE");
 }
 
 type TokensState =
@@ -73,14 +94,20 @@ export function CredentialsPanel(): React.ReactNode {
             tokenReq.setTokenId(h.tokenId);
             try {
               const token = (await mirrorClient.getToken(tokenReq, {})).toObject();
-              return { tokenId: h.tokenId, balance: h.balance, name: token.name, symbol: token.symbol };
+              return {
+                tokenId: h.tokenId,
+                balance: h.balance,
+                name: token.name,
+                symbol: token.symbol,
+                type: token.type,
+              };
             } catch {
               // Name/symbol are cosmetic; the holding itself is still real.
-              return { tokenId: h.tokenId, balance: h.balance, name: "", symbol: "" };
+              return { tokenId: h.tokenId, balance: h.balance, name: "", symbol: "", type: "" };
             }
           }),
         );
-        setTokens({ phase: "ready", holdings });
+        setTokens({ phase: "ready", holdings: holdings.filter((h) => isXpToken(h.type)) });
       })
       .catch((err: unknown) => setTokens({ phase: "error", message: errorMessage(err) }));
   }, [accountId]);
