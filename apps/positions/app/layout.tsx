@@ -1,4 +1,4 @@
-import { neoGlobalCss } from "@attestant/ui";
+import { neoGlobalCss, TopBanner } from "@attestant/ui";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
@@ -14,7 +14,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <head>
         <style dangerouslySetInnerHTML={{ __html: neoGlobalCss }} />
       </head>
-      <body>{children}</body>
+      <body>
+        <TopBanner site="positions" />
+        {children}
+      </body>
     </html>
   );
 }

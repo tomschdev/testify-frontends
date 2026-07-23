@@ -16,6 +16,7 @@ export const neoGlobalCss = `
 
 html, body {
   margin: 0;
+  min-height: 100dvh;
   background: #FFFDF5;
   color: #000000;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -23,6 +24,11 @@ html, body {
 }
 
 *, *::before, *::after { box-sizing: border-box; }
+
+/* The banner is a body-level sibling of the console shell, so the body is the
+   flex column that owns the viewport height and the shell takes the remainder
+   — otherwise a shell asking for 100dvh would push the banner off-screen. */
+body { display: flex; flex-direction: column; }
 
 /* Neo interaction: hover lifts the element toward the light; press slams it
    flat, collapsing its hard shadow. Disabled controls stay put. */
@@ -46,4 +52,12 @@ html, body {
 }
 
 ::selection { background: #FFD23F; color: #000000; }
+
+/* Product banner: on a phone the wordmark plus three console links already
+   fill the bar, so the slogan chip drops out and the links tighten up. */
+@media (max-width: 560px) {
+  .testify-banner-slogan { display: none !important; }
+  .testify-banner { gap: 10px !important; padding: 9px 14px !important; }
+  .testify-banner nav { gap: 14px !important; }
+}
 `;

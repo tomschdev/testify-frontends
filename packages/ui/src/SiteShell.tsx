@@ -15,7 +15,7 @@ export interface SiteShellProps {
 
 const styles: Record<string, CSSProperties> = {
   page: {
-    minHeight: "100vh",
+    flex: 1,
     display: "flex",
     flexDirection: "column",
     alignItems: "center",

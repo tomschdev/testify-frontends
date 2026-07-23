@@ -1,4 +1,5 @@
 export { SiteShell, type SiteShellProps } from "./SiteShell";
+export { TopBanner, type TopBannerProps } from "./TopBanner";
 export { tokens, siteThemes, type SiteKey, type SiteTheme } from "./tokens";
 export { neoGlobalCss } from "./globalCss";
 export {

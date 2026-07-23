@@ -148,7 +148,7 @@ export function Dashboard({ site, name, audience, purpose, actions, children }: 
   return (
     <div
       style={{
-        minHeight: "100vh",
+        flex: 1,
         background: tokens.color.bg,
         color: tokens.color.text,
         fontFamily: tokens.font.sans,
@@ -283,7 +283,7 @@ export function MobileShell({ site, title, actions, nav, children }: MobileShell
   return (
     <div
       style={{
-        minHeight: "100dvh",
+        flex: 1,
         display: "flex",
         flexDirection: "column",
         background: tokens.color.bg,
